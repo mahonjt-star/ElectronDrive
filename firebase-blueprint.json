@@ -1,0 +1,29 @@
+{
+  "collections": [
+    {
+      "name": "trips",
+      "documentId": "auto-generated",
+      "fields": [
+        { "name": "userId", "type": "string", "description": "Google Auth UID" },
+        { "name": "startTime", "type": "timestamp" },
+        { "name": "endTime", "type": "timestamp" },
+        { "name": "startOdo", "type": "number" },
+        { "name": "endOdo", "type": "number" },
+        { "name": "startSOC", "type": "number" },
+        { "name": "endSOC", "type": "number" },
+        { "name": "category", "type": "string" },
+        { "name": "notes", "type": "string" },
+        { "name": "distanceKm", "type": "number" },
+        { "name": "socUsedPct", "type": "number" },
+        { "name": "estKWhUsed", "type": "number" },
+        { "name": "efficiencyKWhPer100Km", "type": "number" }
+      ],
+      "securityRules": {
+        "read": "request.auth != null && request.auth.uid == resource.data.userId",
+        "create": "request.auth != null && request.auth.uid == request.resource.data.userId",
+        "update": "request.auth != null && request.auth.uid == resource.data.userId",
+        "delete": "request.auth != null && request.auth.uid == resource.data.userId"
+      }
+    }
+  ]
+}
