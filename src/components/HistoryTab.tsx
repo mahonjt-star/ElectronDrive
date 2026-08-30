@@ -257,29 +257,33 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
           </div>
           {hasRangeDiff && (
             <div className={`text-[10px] font-bold ${totalRangeDiff > 0 ? 'text-green-400' : totalRangeDiff < 0 ? 'text-red-400' : 'text-white'}`}>
-              {totalRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${Number(totalEstRangeUsed.toFixed(1))}: a ${Math.abs(Number(totalRangeDiff.toFixed(1)))}km (${Math.abs(totalRangeAccuracy)}%) ${totalRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
+              {totalRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${Number(totalEstRangeUsed.toFixed(1))} km: a ${Math.abs(Number(totalRangeDiff.toFixed(1)))} km (${Math.abs(totalRangeAccuracy)}%) ${totalRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
             </div>
           )}
         </div>
       </div>
       
       {expanded && (
-        <div className="mt-4 pt-4 border-t border-[#00D1FF]/20 space-y-3 animate-in fade-in slide-in-from-top-2 relative z-10 pl-2">
-          <div className="absolute left-3 top-20 bottom-8 w-0.5 bg-[#00D1FF]/20 -z-10"></div>
-          {cluster.trips.map(trip => (
-            <TripCard 
-              key={trip.id} 
-              trip={trip} 
-              isEditing={editingId === trip.id}
-              onEdit={() => setEditingId(trip.id!)}
-              onCancelEdit={() => setEditingId(null)}
-              categoryAvg={categoryAverages[trip.category]}
-              selectionMode={selectionMode}
-              selectedIds={selectedIds}
-              toggleSelection={toggleSelection}
-            />
-          ))}
-          <div className="pt-2 flex justify-end relative z-20">
+        <div className="mt-4 pt-4 border-t border-[#00D1FF]/20 animate-in fade-in slide-in-from-top-2 relative z-10">
+          <div className="absolute left-[14px] top-10 bottom-16 w-[2px] bg-[#00D1FF]/30 -z-10"></div>
+          <div className="space-y-3 pl-10">
+            {cluster.trips.map(trip => (
+              <div key={trip.id} className="relative">
+                <div className="absolute -left-[30px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#00D1FF]/60 ring-4 ring-[#00D1FF]/10 z-20"></div>
+                <TripCard 
+                  trip={trip} 
+                  isEditing={editingId === trip.id}
+                  onEdit={() => setEditingId(trip.id!)}
+                  onCancelEdit={() => setEditingId(null)}
+                  categoryAvg={categoryAverages[trip.category]}
+                  selectionMode={selectionMode}
+                  selectedIds={selectedIds}
+                  toggleSelection={toggleSelection}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="pt-3 flex justify-end relative z-20">
             <Button
               variant="outline"
               size="sm"
@@ -522,7 +526,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
           </div>
           {derivedRangeDiff !== null ? (
             <div className={`text-[10px] font-bold ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-white'}`}>
-              {derivedRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${trip.estRangeUsed}: a ${Math.abs(derivedRangeDiff)}km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
+              {derivedRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${trip.estRangeUsed} km: a ${Math.abs(derivedRangeDiff)} km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
             </div>
           ) : (
             <div className="text-[10px] text-white mt-0.5">-{trip.socUsedPct}% SOC</div>
@@ -654,7 +658,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
                     <span>Range: Actual v. Estimated</span>
                   </div>
                   <div className={`text-sm font-bold mt-1 ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-slate-300'}`}>
-                    {derivedRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${trip.estRangeUsed}: a ${Math.abs(derivedRangeDiff)}km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
+                    {derivedRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${trip.estRangeUsed} km: a ${Math.abs(derivedRangeDiff)} km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
                   </div>
                   <div className="text-[10px] text-slate-400 font-normal mt-1 leading-tight">This trip of {trip.distanceKm} actual odometre kilometres consumed {trip.estRangeUsed} km of the vehicle's estimated range (calculated from Start minus End Estimated Range).</div>
                 </div>
