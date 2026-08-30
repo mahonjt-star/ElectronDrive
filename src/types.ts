@@ -4,6 +4,10 @@ export type TripType = "Single" | "Road Trip";
 export interface WeatherSnapshot {
   temp: number;
   condition: string;
+  precip?: number;
+  lat?: number;
+  lon?: number;
+  locationName?: string;
 }
 
 export interface TripWeather {

@@ -15,15 +15,15 @@ export function HistoryTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   if (loading) {
-    return <div className="text-center py-10 text-gray-500">Loading trips...</div>;
+    return <div className="text-center py-10 text-slate-400">Loading trips...</div>;
   }
 
   if (trips.length === 0) {
     return (
       <div className="text-center py-20">
-        <MapPin className="h-12 w-12 mx-auto text-slate-700 mb-4" />
+        <MapPin className="h-12 w-12 mx-auto text-slate-500 mb-4" />
         <h3 className="text-lg font-bold text-white">No trips logged yet</h3>
-        <p className="text-slate-500 mt-2 text-sm">Start your first trip from the Log Trip tab.</p>
+        <p className="text-white mt-2 text-sm">Start your first trip from the Log Trip tab.</p>
       </div>
     );
   }
@@ -77,7 +77,7 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-4 pb-4 animate-in fade-in duration-500 glass-card p-6 flex-1 flex flex-col overflow-hidden">
-      <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Trip History</h2>
+      <h2 className="text-xs font-bold text-white uppercase tracking-widest mb-6">Trip History</h2>
       <div className="flex-1 space-y-4">
         {groupedTrips.map((item, idx) => {
           if (item.isCluster) {
@@ -152,7 +152,7 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
           <div className="text-sm font-bold text-[#00D1FF] mb-1 flex items-center gap-1.5 uppercase tracking-widest">
             <Route className="h-4 w-4" /> {cluster.name}
           </div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1 flex-wrap">
+          <div className="text-[10px] text-white uppercase tracking-widest flex items-center gap-1 flex-wrap">
             {format(startTime, 'MMM d')} - {format(endTime, 'MMM d, yyyy')} • {cluster.trips.length} Legs • {totalDistance.toFixed(1)} km
             {totalDuration > 0 && ` • ${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`}
             {avgSpeed && ` • ${avgSpeed} km/h`}
@@ -163,7 +163,7 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
             {avgEfficiency} <span className="text-[10px] opacity-60">avg kWh/100km</span>
           </div>
           {hasRangeDiff && (
-            <div className={`text-[10px] font-bold ${totalRangeDiff > 0 ? 'text-green-400' : totalRangeDiff < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+            <div className={`text-[10px] font-bold ${totalRangeDiff > 0 ? 'text-green-400' : totalRangeDiff < 0 ? 'text-red-400' : 'text-white'}`}>
               {totalRangeDiff === 0 ? 'Exact Match' : `${Math.abs(Number(totalRangeDiff.toFixed(1)))} km ${totalRangeDiff < 0 ? 'Overest.' : 'Underest.'}`}
             </div>
           )}
@@ -289,38 +289,38 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
       <div className="p-4 rounded-xl bg-white/5 border border-[#00D1FF]/50 shadow-[0_0_15px_rgba(0,209,255,0.1)] relative">
         <div className="flex justify-between items-center mb-4">
           <h4 className="font-bold text-white text-sm uppercase tracking-widest">Edit Trip</h4>
-          <button onClick={onCancelEdit} className="p-1 text-slate-400 hover:text-white rounded-full bg-white/5"><X className="h-4 w-4"/></button>
+          <button onClick={onCancelEdit} className="p-1 text-white hover:text-white rounded-full bg-white/5"><X className="h-4 w-4"/></button>
         </div>
         
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">Start Odo</label>
+              <label className="text-xs font-bold text-white uppercase">Start Odo</label>
               <Input type="number" value={editData.startOdo} onChange={e => setEditData({...editData, startOdo: e.target.value})} className="h-10 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">End Odo</label>
+              <label className="text-xs font-bold text-white uppercase">End Odo</label>
               <Input type="number" value={editData.endOdo} onChange={e => setEditData({...editData, endOdo: e.target.value})} className="h-10 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">Start SOC</label>
+              <label className="text-xs font-bold text-white uppercase">Start SOC</label>
               <Input type="number" value={editData.startSOC} onChange={e => setEditData({...editData, startSOC: e.target.value})} className="h-10 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">End SOC</label>
+              <label className="text-xs font-bold text-white uppercase">End SOC</label>
               <Input type="number" value={editData.endSOC} onChange={e => setEditData({...editData, endSOC: e.target.value})} className="h-10 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">Start Est. Range</label>
+              <label className="text-xs font-bold text-white uppercase">Start Est. Range</label>
               <Input type="number" value={editData.startEstRange} onChange={e => setEditData({...editData, startEstRange: e.target.value})} className="h-10 text-sm" placeholder="Optional" />
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase">End Est. Range</label>
+              <label className="text-xs font-bold text-white uppercase">End Est. Range</label>
               <Input type="number" value={editData.endEstRange} onChange={e => setEditData({...editData, endEstRange: e.target.value})} className="h-10 text-sm" placeholder="Optional" />
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Category</label>
+            <label className="text-xs font-bold text-white uppercase mb-1 block">Category</label>
             <select 
               value={editData.category}
               onChange={e => setEditData({...editData, category: e.target.value as any})}
@@ -369,6 +369,10 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
   const derivedRangeDiff = hasRangeData 
     ? (trip.rangeDiffKm !== undefined && trip.rangeDiffKm !== null ? trip.rangeDiffKm : (trip.distanceKm - estRangeUsed)) 
     : null;
+    
+  const derivedRangeAccuracy = (trip.rangeAccuracyPct !== undefined && trip.rangeAccuracyPct !== null)
+    ? trip.rangeAccuracyPct
+    : (estRangeUsed > 0 && derivedRangeDiff !== null ? Number(((derivedRangeDiff / estRangeUsed) * 100).toFixed(1)) : null);
 
   return (
     <div className="p-4 rounded-xl bg-white/5 border border-white/5 transition-all hover:bg-white/10 relative">
@@ -377,7 +381,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
           <div className="text-sm font-bold text-white mb-1">
             {format(trip.startTime, 'MMM d, yyyy')}
           </div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1 mt-1 flex-wrap">
+          <div className="text-[10px] text-white uppercase tracking-widest flex items-center gap-1 mt-1 flex-wrap">
             <Clock className="h-3 w-3" /> {format(trip.startTime, 'h:mm a')} • {trip.category} • {trip.distanceKm} km
             {trip.durationMinutes && ` • ${Math.floor(trip.durationMinutes / 60)}h ${trip.durationMinutes % 60}m`}
             {trip.averageSpeedKph && ` • ${trip.averageSpeedKph} km/h`}
@@ -388,11 +392,11 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
             {trip.efficiencyKWhPer100Km} <span className="text-[10px] opacity-60">kWh/100km</span>
           </div>
           {derivedRangeDiff !== null ? (
-            <div className={`text-[10px] font-bold ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-slate-400'}`}>
-              {derivedRangeDiff === 0 ? 'Exact Match' : `${Math.abs(derivedRangeDiff)} km ${derivedRangeDiff < 0 ? 'Overest.' : 'Underest.'}`}
+            <div className={`text-[10px] font-bold ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-white'}`}>
+              {derivedRangeDiff === 0 ? 'Exact Match' : `${Math.abs(derivedRangeDiff)} km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'Overest.' : 'Underest.'}`}
             </div>
           ) : (
-            <div className="text-[10px] text-slate-500 mt-0.5">-{trip.socUsedPct}% SOC</div>
+            <div className="text-[10px] text-white mt-0.5">-{trip.socUsedPct}% SOC</div>
           )}
         </div>
       </div>
@@ -401,19 +405,19 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
         <div className="mt-4 pt-4 border-t border-white/10 animate-in fade-in slide-in-from-top-2">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-black/20 p-3 rounded-xl flex items-center gap-3">
-              <Battery className="h-5 w-5 text-slate-400" />
+              <Battery className="h-5 w-5 text-white" />
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">SOC Used</div>
-                <div className="font-semibold text-sm">{trip.socUsedPct}% <span className="text-xs text-slate-500 font-normal">({trip.startSOC} → {trip.endSOC})</span></div>
+                <div className="text-[10px] uppercase font-bold text-white tracking-widest">SOC Used</div>
+                <div className="font-semibold text-sm">{trip.socUsedPct}% <span className="text-xs text-white font-normal">({trip.startSOC} → {trip.endSOC})</span></div>
               </div>
             </div>
             <div className="bg-black/20 p-3 rounded-xl flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1">
                 <Zap className={`h-4 w-4 ${effColor}`} />
-                <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Est. Energy</div>
+                <div className="text-[10px] uppercase font-bold text-white tracking-widest">Est. Energy</div>
               </div>
               <div className="flex items-end justify-between">
-                <div className="font-semibold text-sm">{trip.estKWhUsed} <span className="text-xs text-slate-500 font-normal">kWh</span></div>
+                <div className="font-semibold text-sm">{trip.estKWhUsed} <span className="text-xs text-white font-normal">kWh</span></div>
                 {diffText && (
                   <div className={`text-[9px] px-1.5 py-0.5 rounded bg-black/40 ${effColor}`}>
                     {diffText}
@@ -425,15 +429,51 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
             {/* Weather & Payload Grid */}
             <div className="col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {trip.weather && (
-                <div className="bg-black/20 p-3 rounded-xl flex items-start gap-3 border border-white/5">
+                <div className="col-span-2 bg-black/20 p-3 rounded-xl flex items-start gap-3 border border-white/5">
                   <CloudSun className="h-5 w-5 text-[#00D1FF] shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Weather & Environment</div>
-                    <div className="text-sm font-semibold">{trip.weather.season} {trip.weather.overallCondition ? `• ${trip.weather.overallCondition}` : ''}</div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      {trip.weather.avgTemp !== undefined ? `${trip.weather.avgTemp}°C Avg Temp` : ''}
-                      {trip.weather.waypoints && trip.weather.waypoints.length > 0 && (
-                        <span className="text-[#00D1FF] ml-2">({trip.weather.waypoints.length} API {trip.weather.waypoints.length === 1 ? 'Call' : 'Calls'})</span>
+                    <div className="text-[10px] uppercase font-bold text-white tracking-widest mb-1">Weather & Environment Logs</div>
+                    <div className="text-sm font-semibold mb-2">{trip.weather.season} {trip.weather.overallCondition ? `• ${trip.weather.overallCondition}` : ''} {trip.weather.avgTemp !== undefined ? `• ${trip.weather.avgTemp}°C Avg` : ''}</div>
+                    
+                    <div className="space-y-2 mt-3">
+                      {trip.weather.start && (
+                        <div className="text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-white/5 pb-2 gap-1">
+                          <span className="text-white font-bold">Start</span>
+                          <span className="text-slate-300 flex items-center flex-wrap gap-2">
+                            <span>{trip.weather.start.temp}°C, {trip.weather.start.condition}{trip.weather.start.precip ? ` (${trip.weather.start.precip}mm)` : ''}</span>
+                            {trip.weather.start.lat && trip.weather.start.lon && (
+                              <a href={`https://www.google.com/maps?q=${trip.weather.start.lat},${trip.weather.start.lon}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#00D1FF] hover:text-white transition-colors bg-[#00D1FF]/10 hover:bg-[#00D1FF]/20 px-2 py-0.5 rounded font-bold">
+                                <MapPin className="h-3 w-3" /> {trip.weather.start.locationName || 'Map'}
+                              </a>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      {trip.weather.waypoints?.map((wp, idx) => (
+                        <div key={idx} className="text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-white/5 pb-2 gap-1">
+                          <span className="text-[#00D1FF]/70 font-bold">Waypoint {idx + 1}</span>
+                          <span className="text-slate-300 flex items-center flex-wrap gap-2">
+                            <span>{wp.temp}°C, {wp.condition}{wp.precip ? ` (${wp.precip}mm)` : ''}</span>
+                            {wp.lat && wp.lon && (
+                              <a href={`https://www.google.com/maps?q=${wp.lat},${wp.lon}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#00D1FF] hover:text-white transition-colors bg-[#00D1FF]/10 hover:bg-[#00D1FF]/20 px-2 py-0.5 rounded font-bold">
+                                <MapPin className="h-3 w-3" /> {wp.locationName || 'Map'}
+                              </a>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                      {trip.weather.end && (
+                        <div className="text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center pb-1 gap-1">
+                          <span className="text-white font-bold">End</span>
+                          <span className="text-slate-300 flex items-center flex-wrap gap-2">
+                            <span>{trip.weather.end.temp}°C, {trip.weather.end.condition}{trip.weather.end.precip ? ` (${trip.weather.end.precip}mm)` : ''}</span>
+                            {trip.weather.end.lat && trip.weather.end.lon && (
+                              <a href={`https://www.google.com/maps?q=${trip.weather.end.lat},${trip.weather.end.lon}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#00D1FF] hover:text-white transition-colors bg-[#00D1FF]/10 hover:bg-[#00D1FF]/20 px-2 py-0.5 rounded font-bold">
+                                <MapPin className="h-3 w-3" /> {trip.weather.end.locationName || 'Map'}
+                              </a>
+                            )}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -443,9 +483,9 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
                 <div className="bg-black/20 p-3 rounded-xl flex items-start gap-3 border border-white/5">
                   <Users className="h-5 w-5 text-green-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">Payload & Load</div>
+                    <div className="text-[10px] uppercase font-bold text-white tracking-widest mb-1">Payload & Load</div>
                     <div className="text-sm font-semibold">{trip.payload.estWeightKg}kg Estimated Total</div>
-                    <div className="text-xs text-slate-400 mt-1 flex flex-wrap gap-2">
+                    <div className="text-xs text-white mt-1 flex flex-wrap gap-2">
                       <span>{trip.payload.people} 👤</span>
                       {trip.payload.dogs > 0 && <span>{trip.payload.dogs} 🐶</span>}
                       {trip.payload.luggage && trip.payload.luggage !== 'None' && <span>{trip.payload.luggage} 🧳</span>}
@@ -457,15 +497,15 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
 
             {derivedRangeDiff !== null && (
               <div className="col-span-2 bg-black/20 p-3 rounded-xl flex items-center gap-3 border border-white/5">
-                <MapPin className={`h-5 w-5 ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-slate-400'}`} />
+                <MapPin className={`h-5 w-5 ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-white'}`} />
                 <div className="flex-1">
-                  <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest flex justify-between">
+                  <div className="text-[10px] uppercase font-bold text-white tracking-widest flex justify-between">
                     <span>True Range Cost</span>
                   </div>
                   <div className={`text-sm font-bold mt-1 ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-slate-300'}`}>
-                    {derivedRangeDiff === 0 ? 'Exact Match' : `${Math.abs(derivedRangeDiff)} km ${derivedRangeDiff < 0 ? 'Overestimate' : 'Underestimate'}`}
+                    {derivedRangeDiff === 0 ? 'Exact Match' : `${Math.abs(derivedRangeDiff)} km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'Overestimate' : 'Underestimate'}`}
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">This {trip.distanceKm} km trip 'cost' {trip.estRangeUsed} km of estimated range.</div>
+                  <div className="text-xs text-white mt-0.5">This {trip.distanceKm} km trip 'cost' {trip.estRangeUsed} km of estimated range.</div>
                 </div>
               </div>
             )}
@@ -477,7 +517,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
             </div>
           )}
 
-          <div className="flex justify-between items-center text-xs text-slate-500">
+          <div className="flex justify-between items-center text-xs text-white">
             <div>Odo: <span className="odo-display text-[10px] py-1 px-2 mx-1">{trip.startOdo}</span> → <span className="odo-display text-[10px] py-1 px-2 mx-1">{trip.endOdo}</span></div>
             <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-1 text-[#00D1FF] font-bold uppercase tracking-widest hover:text-white transition-colors p-1 text-[10px]">
               <Edit3 className="h-3 w-3" /> Edit
@@ -488,7 +528,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
       
       {!expanded && (
         <div className="flex justify-center mt-2 -mb-2">
-          <ChevronDown className="h-4 w-4 text-slate-600" />
+          <ChevronDown className="h-4 w-4 text-slate-400" />
         </div>
       )}
     </div>

@@ -3,6 +3,9 @@ import { format } from 'date-fns';
 export interface WeatherSnapshot {
   temp: number;
   condition: string;
+  precip?: number;
+  lat?: number;
+  lon?: number;
 }
 
 export async function fetchWeather(lat: number, lon: number): Promise<WeatherSnapshot | null> {
@@ -10,7 +13,7 @@ export async function fetchWeather(lat: number, lon: number): Promise<WeatherSna
     const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
     if (!res.ok) return null;
     const data = await res.json();
-    return { temp: data.temp, condition: data.condition };
+    return { temp: data.temp, condition: data.condition, precip: data.precip, lat: data.lat, lon: data.lon };
   } catch (error) {
     console.error("Weather fetch failed:", error);
     return null;

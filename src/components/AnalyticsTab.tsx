@@ -233,12 +233,12 @@ export function AnalyticsTab() {
     }, 500);
   };
 
-  if (loading) return <div className="text-center py-10 text-gray-500">Loading analytics...</div>;
+  if (loading) return <div className="text-center py-10 text-slate-400">Loading analytics...</div>;
 
   return (
     <div className="space-y-6 pb-6 animate-in fade-in duration-500 flex-1 flex flex-col">
       <div className="flex justify-between items-center px-1">
-        <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Fleet Analytics</h2>
+        <h2 className="text-xs font-bold text-white uppercase tracking-widest">Fleet Analytics</h2>
         <Button variant="ghost" size="sm" onClick={handleExport} disabled={exporting || trips.length === 0} className="h-10 px-3 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#00D1FF] hover:bg-white/5 border border-white/5 bg-black/20">
           {exporting ? <CheckCircle2 className="h-4 w-4 mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
           {exporting ? 'Exported' : 'CSV'}
@@ -251,7 +251,7 @@ export function AnalyticsTab() {
             key={tf}
             onClick={() => setTimeframe(tf)}
             className={`flex-1 min-w-[60px] text-xs font-bold uppercase tracking-widest py-2 rounded-lg transition-all ${
-              timeframe === tf ? 'bg-white/10 shadow-[0_0_10px_rgba(0,209,255,0.2)] text-[#00D1FF]' : 'text-slate-500 hover:text-slate-300'
+              timeframe === tf ? 'bg-white/10 shadow-[0_0_10px_rgba(0,209,255,0.2)] text-[#00D1FF]' : 'text-white hover:text-slate-300'
             }`}
           >
             {tf}
@@ -261,13 +261,13 @@ export function AnalyticsTab() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="glass-card p-5">
-          <div className="flex items-center gap-2 text-slate-400 mb-2 text-xs font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
             <Navigation className="h-4 w-4 text-[#00D1FF]" /> Distance
           </div>
           <div className="stat-value">{stats.totalDist.toLocaleString()} <span className="text-xs font-normal opacity-60">km</span></div>
         </div>
         <div className="glass-card p-5">
-          <div className="flex items-center gap-2 text-slate-400 mb-2 text-xs font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
             <TrendingDown className="h-4 w-4 text-green-400" /> Efficiency
           </div>
           <div className="stat-value !text-green-400 !shadow-[0_0_15px_rgba(74,222,128,0.3)]">{stats.avgEff} <span className="text-xs font-normal opacity-60 text-white">kWh/100km</span></div>
@@ -277,7 +277,7 @@ export function AnalyticsTab() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="glass-card p-5 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 text-slate-400 mb-1 text-xs font-bold uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-white mb-1 text-xs font-bold uppercase tracking-widest">
               <BatteryCharging className="h-4 w-4 text-[#00D1FF]" /> Est. Energy
             </div>
             <div className="stat-value text-3xl">{stats.totalEnergy.toLocaleString()} <span className="text-xs font-normal opacity-60">kWh</span></div>
@@ -287,14 +287,14 @@ export function AnalyticsTab() {
         {stats.avgAccuracy !== null && (
           <div className="glass-card p-5 flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2 text-slate-400 mb-1 text-xs font-bold uppercase tracking-widest">
+              <div className="flex items-center gap-2 text-white mb-1 text-xs font-bold uppercase tracking-widest">
                 <Navigation className={`h-4 w-4 ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-purple-400'}`} /> 
                 True Range Cost
               </div>
               <div className={`stat-value text-xl sm:text-2xl ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-white'}`}>
                 {stats.totalRangeDiff === 0 ? 'Exact Match' : `${Math.abs(stats.totalRangeDiff!)} km ${stats.totalRangeDiff! < 0 ? 'Overestimate' : 'Underestimate'}`}
               </div>
-              <div className={`text-xs mt-1 ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+              <div className={`text-xs mt-1 ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-white'}`}>
                 {stats.avgAccuracy === 0 ? '0% variance' : `Avg ${Math.abs(stats.avgAccuracy)}% ${stats.avgAccuracy < 0 ? 'overestimated range cost' : 'underestimated range cost'}`}
               </div>
             </div>
@@ -305,7 +305,7 @@ export function AnalyticsTab() {
       {categoryStats.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center mt-4">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Category Performance</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Category Performance</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {categoryStats.map(cat => (
@@ -321,12 +321,12 @@ export function AnalyticsTab() {
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Total Distance</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Total Distance</span>
                     <span className="text-sm font-bold">{cat.distance.toLocaleString()} km</span>
                   </div>
                   
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Avg Efficiency</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Avg Efficiency</span>
                     <span className={`text-sm font-bold ${
                       cat.name === 'Urban' ? 'text-[#00D1FF]' : 
                       cat.name === 'Peri-Urban' ? 'text-purple-400' : 
@@ -335,15 +335,15 @@ export function AnalyticsTab() {
                   </div>
                   
                   <div className="flex justify-between items-end pt-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Range Bias</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Range Bias</span>
                     {cat.rangeBiasPct !== null ? (
-                      <div className={`text-right ${cat.rangeBiasPct > 0 ? 'text-green-400' : cat.rangeBiasPct < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                      <div className={`text-right ${cat.rangeBiasPct > 0 ? 'text-green-400' : cat.rangeBiasPct < 0 ? 'text-red-400' : 'text-white'}`}>
                         <div className="text-sm font-bold">
                           {cat.rangeBiasPct === 0 ? 'Exact' : `${Math.abs(cat.rangeBiasPct)}% ${cat.rangeBiasPct < 0 ? 'Over' : 'Under'}`}
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-500 font-bold italic">N/A</span>
+                      <span className="text-xs text-white font-bold italic">N/A</span>
                     )}
                   </div>
                 </div>
@@ -356,7 +356,7 @@ export function AnalyticsTab() {
       {seasonStats.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center mt-6">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Seasonal Performance</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Seasonal Performance</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {seasonStats.map(season => (
@@ -367,25 +367,25 @@ export function AnalyticsTab() {
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Distance</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Distance</span>
                     <span className="text-sm font-bold">{season.distance.toLocaleString()} km</span>
                   </div>
                   
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Efficiency</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{season.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
                   
                   <div className="flex justify-between items-end pt-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Range Bias</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Range Bias</span>
                     {season.rangeBiasPct !== null ? (
-                      <div className={`text-right ${season.rangeBiasPct > 0 ? 'text-green-400' : season.rangeBiasPct < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                      <div className={`text-right ${season.rangeBiasPct > 0 ? 'text-green-400' : season.rangeBiasPct < 0 ? 'text-red-400' : 'text-white'}`}>
                         <div className="text-sm font-bold">
                           {season.rangeBiasPct === 0 ? 'Exact' : `${Math.abs(season.rangeBiasPct)}% ${season.rangeBiasPct < 0 ? 'Over' : 'Under'}`}
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-500 font-bold italic">N/A</span>
+                      <span className="text-xs text-white font-bold italic">N/A</span>
                     )}
                   </div>
                 </div>
@@ -397,7 +397,7 @@ export function AnalyticsTab() {
       {speedStats.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center mt-6">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Speed Impact</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Speed Impact</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {speedStats.map(speed => (
@@ -407,15 +407,15 @@ export function AnalyticsTab() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Distance</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Distance</span>
                     <span className="text-sm font-bold">{speed.distance.toLocaleString()} km</span>
                   </div>
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Avg Speed</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Avg Speed</span>
                     <span className="text-sm font-bold">{speed.avgSpeed} <span className="text-[10px] opacity-60">km/h</span></span>
                   </div>
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Efficiency</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{speed.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
                 </div>
@@ -428,7 +428,7 @@ export function AnalyticsTab() {
       {payloadStats.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center mt-6">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Payload Impact</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Payload Impact</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {payloadStats.map(payload => (
@@ -438,11 +438,11 @@ export function AnalyticsTab() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Distance</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Distance</span>
                     <span className="text-sm font-bold">{payload.distance.toLocaleString()} km</span>
                   </div>
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Efficiency</span>
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{payload.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
                 </div>

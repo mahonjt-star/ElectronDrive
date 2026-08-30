@@ -14,7 +14,7 @@ function AppContent() {
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#00D1FF]" />
       </div>
     );
   }
@@ -29,7 +29,7 @@ function AppContent() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">ELECTRON<span className="text-[#00D1FF]">DRIVE</span></h1>
-            <p className="mt-2 text-slate-400">BYD Seal EV Trip & Efficiency Tracker</p>
+            <p className="mt-2 text-white">BYD Seal EV Trip & Efficiency Tracker</p>
           </div>
           <Button onClick={loginWithGoogle} className="w-full btn-primary" size="lg">
             Sign in with Google
@@ -52,7 +52,7 @@ function AppContent() {
         </div>
         
         <div className="flex items-center gap-4 sm:gap-6">
-          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-white">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             CLOUD SYNC ACTIVE
           </div>
@@ -83,7 +83,7 @@ function AppContent() {
           <button
             onClick={() => setActiveTab('log')}
             className={`flex flex-1 flex-col items-center justify-center space-y-1 transition-colors ${
-              activeTab === 'log' ? 'text-[#00D1FF]' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'log' ? 'text-[#00D1FF]' : 'text-white hover:text-slate-300'
             }`}
           >
             <CarFront className="h-6 w-6" />
@@ -92,7 +92,7 @@ function AppContent() {
           <button
             onClick={() => setActiveTab('history')}
             className={`flex flex-1 flex-col items-center justify-center space-y-1 transition-colors ${
-              activeTab === 'history' ? 'text-[#00D1FF]' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'history' ? 'text-[#00D1FF]' : 'text-white hover:text-slate-300'
             }`}
           >
             <History className="h-6 w-6" />
@@ -101,7 +101,7 @@ function AppContent() {
           <button
             onClick={() => setActiveTab('analytics')}
             className={`flex flex-1 flex-col items-center justify-center space-y-1 transition-colors ${
-              activeTab === 'analytics' ? 'text-[#00D1FF]' : 'text-slate-500 hover:text-slate-300'
+              activeTab === 'analytics' ? 'text-[#00D1FF]' : 'text-white hover:text-slate-300'
             }`}
           >
             <BarChart3 className="h-6 w-6" />

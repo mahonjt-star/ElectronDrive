@@ -92,14 +92,3 @@ The app will be available at `http://localhost:3000`.
 *   **Database & Auth**: Firebase / Firestore
 *   **Icons**: Lucide React
 *   **Weather Data**: XWeather API
-
----
-
-## 🖼️ App Images
-<img width="1156" height="722" alt="1" src="https://github.com/user-attachments/assets/9e2ea618-af91-4c77-b634-634ccf4a881d" />
-<img width="1127" height="715" alt="2" src="https://github.com/user-attachments/assets/1c141bc5-263c-427f-b7a2-0107c3fb533d" />
-<img width="1154" height="721" alt="3" src="https://github.com/user-attachments/assets/56d495d1-ebee-4211-9dbc-307ebd94814f" />
-<img width="1155" height="716" alt="4" src="https://github.com/user-attachments/assets/5f88d771-b1cf-4419-a6b9-b95b0db9ee76" />
-<img width="1154" height="719" alt="5" src="https://github.com/user-attachments/assets/600262bd-864d-4b12-ba36-749f190cd632" />
-<img width="1151" height="720" alt="6" src="https://github.com/user-attachments/assets/10b5cacd-8a54-4b68-b632-ac8e23bde17e" />
-<img width="1281" height="741" alt="7" src="https://github.com/user-attachments/assets/7faf8da0-b499-4280-b77c-22a83a7b92ef" />

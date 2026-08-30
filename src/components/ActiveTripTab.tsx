@@ -43,7 +43,7 @@ export function ActiveTripTab() {
   const [setupStep, setSetupStep] = useState<number>(1);
   const [peopleCount, setPeopleCount] = useState<number>(1);
   const [dogCount, setDogCount] = useState<number>(0);
-  const [luggage, setLuggage] = useState<'None' | 'Low' | 'Medium' | 'High'>('Medium');
+  const [luggage, setLuggage] = useState<'None' | 'Low' | 'Medium' | 'High'>('Low');
   
   const [endOdo, setEndOdo] = useState<string>('');
   const [endSOC, setEndSOC] = useState<string>('');
@@ -55,6 +55,7 @@ export function ActiveTripTab() {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [isEndingTrip, setIsEndingTrip] = useState(false);
   const [endStep, setEndStep] = useState<number>(1);
+  const [postTripState, setPostTripState] = useState<'none' | 'road_trip_leg'>('none');
 
   // Load active trip and previous settings from local storage
   useEffect(() => {
@@ -293,7 +294,13 @@ export function ActiveTripTab() {
       });
 
       localStorage.removeItem('electron_active_trip');
+      
+      if (activeTrip.tripType === 'Road Trip') {
+        setPostTripState('road_trip_leg');
+      }
+      
       setActiveTrip(null);
+      
       // Pre-fill next start with this end
       setStartOdo(endO.toString());
       setStartSOC(endS.toString());
@@ -302,6 +309,14 @@ export function ActiveTripTab() {
       } else {
         setStartEstRange('');
       }
+      
+      setEndOdo('');
+      setEndSOC('');
+      setEndEstRange('');
+      setNotes('');
+      setSetupStep(1);
+      setIsEndingTrip(false);
+      setEndStep(1);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to save trip');
@@ -321,6 +336,52 @@ export function ActiveTripTab() {
     }
   };
 
+  if (postTripState === 'road_trip_leg') {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="glass-card glow-accent p-6 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[60vh]">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-[radial-gradient(circle,rgba(0,209,255,0.15)_0%,transparent_70%)]"></div>
+          
+          <div className="w-16 h-16 bg-[#00D1FF]/20 rounded-full flex items-center justify-center mb-6 relative z-10 shadow-[0_0_20px_rgba(0,209,255,0.3)]">
+            <CheckCircle2 className="w-8 h-8 text-[#00D1FF]" />
+          </div>
+          
+          <h2 className="text-2xl font-bold mb-2 relative z-10">Leg Complete!</h2>
+          <p className="text-white mb-8 max-w-sm relative z-10">
+            Your trip data has been securely logged. Would you like to continue to the next leg of this Road Trip, or end the entire Road Trip?
+          </p>
+          
+          <div className="flex flex-col gap-4 w-full max-w-xs relative z-10">
+            <Button 
+              className="w-full uppercase tracking-widest text-xs h-14 font-bold" 
+              onClick={() => {
+                setPostTripState('none');
+                setTripType('Road Trip');
+                setSetupStep(1);
+              }}
+            >
+              Continue to Next Leg
+            </Button>
+            <Button 
+              variant="outline"
+              className="w-full uppercase tracking-widest text-xs h-14 bg-white/5 border-white/10 text-white hover:bg-white/10 font-bold" 
+              onClick={() => {
+                setPostTripState('none');
+                setTripType('Single');
+                setRoadTripName('');
+                localStorage.removeItem('electron_last_trip_type');
+                localStorage.removeItem('electron_last_roadtrip_name');
+                setSetupStep(1);
+              }}
+            >
+              End Road Trip
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (activeTrip) {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -335,7 +396,7 @@ export function ActiveTripTab() {
                   <Route className="h-3 w-3" /> {activeTrip.roadTripName}
                 </div>
               )}
-              <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1 flex items-center gap-1">
+              <div className="text-[10px] text-white uppercase font-bold tracking-widest mt-1 flex items-center gap-1">
                 {activeTrip.startWeather ? (
                   <><CloudSun className="h-3 w-3 text-[#00D1FF]" /> {activeTrip.startWeather.condition} • {activeTrip.startWeather.temp}°C</>
                 ) : (
@@ -351,18 +412,18 @@ export function ActiveTripTab() {
           
           <div className="grid grid-cols-2 gap-4 mt-2 relative z-10">
             <div>
-              <p className="text-xs font-bold text-slate-500 uppercase mb-3">Starting Odo</p>
-              <div className="odo-display text-2xl font-bold">{activeTrip.startOdo} <span className="text-sm text-slate-500">km</span></div>
+              <p className="text-xs font-bold text-white uppercase mb-3">Starting Odo</p>
+              <div className="odo-display text-2xl font-bold">{activeTrip.startOdo} <span className="text-sm text-white">km</span></div>
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-500 uppercase mb-3">Starting Range</p>
-              <div className="odo-display text-2xl font-bold">{activeTrip.startEstRange !== undefined ? activeTrip.startEstRange : '--'} <span className="text-sm text-slate-500">km</span></div>
+              <p className="text-xs font-bold text-white uppercase mb-3">Starting Range</p>
+              <div className="odo-display text-2xl font-bold">{activeTrip.startEstRange !== undefined ? activeTrip.startEstRange : '--'} <span className="text-sm text-white">km</span></div>
             </div>
             <div className="col-span-2 mt-2">
-              <p className="text-xs font-bold text-slate-500 uppercase mb-3">Starting SOC</p>
+              <p className="text-xs font-bold text-white uppercase mb-3">Starting SOC</p>
               <div className="flex items-end gap-2">
                 <span className="text-4xl font-bold">{activeTrip.startSOC}</span>
-                <span className="text-lg text-slate-500 mb-1">%</span>
+                <span className="text-lg text-white mb-1">%</span>
               </div>
               <div className="w-full h-2 bg-slate-800 rounded-full mt-2">
                 <div className="h-full bg-green-500 rounded-full" style={{ width: `${activeTrip.startSOC}%` }}></div>
@@ -373,14 +434,14 @@ export function ActiveTripTab() {
 
         {!isEndingTrip ? (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {activeTrip.category === 'Regional' && (
+            {(activeTrip.category === 'Regional' || activeTrip.category === 'Peri-Urban') && (
               <div className="bg-black/20 p-4 rounded-xl border border-white/5 mb-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Regional Weather Tracking</span>
+                  <span className="text-xs font-bold text-white uppercase tracking-widest">Weather Tracking</span>
                   <span className="text-xs text-[#00D1FF] font-bold">{activeTrip.waypoints?.length || 0} Waypoints</span>
                 </div>
-                <p className="text-[10px] text-slate-500 mb-4">
-                  For long trips, log a waypoint when you stop to charge or rest to improve average weather accuracy.
+                <p className="text-[10px] text-white mb-4">
+                  Log a waypoint when you stop to improve average weather accuracy.
                 </p>
                 <Button 
                   onClick={handleLogWaypoint} 
@@ -404,14 +465,14 @@ export function ActiveTripTab() {
           </div>
         ) : (
           <div className="space-y-4 glass-card p-6 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Complete Trip</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest mb-4">Complete Trip</h3>
             
             <div className="space-y-6">
               {error && <div className="text-red-400 bg-red-900/20 border border-red-500/30 p-3 rounded-xl flex items-center gap-2 text-sm"><AlertTriangle className="h-4 w-4"/>{error}</div>}
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">End Odometer (km)</label>
+                  <label className="text-xs font-bold text-white uppercase">End Odometer (km)</label>
                   <Input 
                     type="number" inputMode="decimal"
                     value={endOdo} onChange={(e) => setEndOdo(e.target.value)}
@@ -419,7 +480,7 @@ export function ActiveTripTab() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">End Battery SOC (%)</label>
+                  <label className="text-xs font-bold text-white uppercase">End Battery SOC (%)</label>
                   <Input 
                     type="number" inputMode="numeric"
                     value={endSOC} onChange={(e) => setEndSOC(e.target.value)}
@@ -427,7 +488,7 @@ export function ActiveTripTab() {
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">End Est. Range (km)</label>
+                  <label className="text-xs font-bold text-white uppercase">End Est. Range (km)</label>
                   <Input 
                     type="number" inputMode="numeric"
                     value={endEstRange} onChange={(e) => setEndEstRange(e.target.value)}
@@ -444,7 +505,7 @@ export function ActiveTripTab() {
                   {saving ? 'Acquiring GPS & Saving...' : 'Complete Trip'}
                 </Button>
               </div>
-              <p className="text-[10px] text-center text-slate-500 mt-2 flex items-center justify-center gap-1">
+              <p className="text-[10px] text-center text-white mt-2 flex items-center justify-center gap-1">
                 <CloudSun className="h-3 w-3" /> Location & Weather are automatically captured via XWeather.
               </p>
             </div>
@@ -471,7 +532,7 @@ export function ActiveTripTab() {
           <div className="flex items-center justify-between px-2 mb-2">
             {[1, 2, 3].map(step => (
               <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${setupStep === step ? 'bg-[#00D1FF] text-black shadow-[0_0_10px_rgba(0,209,255,0.5)]' : setupStep > step ? 'bg-[#00D1FF]/20 text-[#00D1FF]' : 'bg-white/5 text-slate-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${setupStep === step ? 'bg-[#00D1FF] text-black shadow-[0_0_10px_rgba(0,209,255,0.5)]' : setupStep > step ? 'bg-[#00D1FF]/20 text-[#00D1FF]' : 'bg-white/5 text-white'}`}>
                   {setupStep > step ? <CheckCircle2 className="w-4 h-4" /> : step}
                 </div>
                 {step < 3 && <div className={`w-8 sm:w-16 h-1 mx-2 rounded-full ${setupStep > step ? 'bg-[#00D1FF]/40' : 'bg-white/5'}`}></div>}
@@ -482,7 +543,7 @@ export function ActiveTripTab() {
           {setupStep === 1 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-8">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase mb-4">Trip Structure</p>
+                <p className="text-xs font-bold text-white uppercase mb-4">Trip Structure</p>
                 <div className="flex gap-3 mb-4">
                   <div 
                     onClick={() => setTripType('Single')} 
@@ -500,7 +561,7 @@ export function ActiveTripTab() {
                 
                 {tripType === 'Road Trip' && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-2 mt-4">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Road Trip Name</label>
+                    <label className="text-xs font-bold text-white uppercase">Road Trip Name</label>
                     <Input 
                       type="text" 
                       value={roadTripName} 
@@ -512,7 +573,7 @@ export function ActiveTripTab() {
               </div>
 
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase mb-4">Trip Category</p>
+                <p className="text-xs font-bold text-white uppercase mb-4">Trip Category</p>
                 <div className="flex flex-wrap gap-3">
                   {(['Urban', 'Peri-Urban', 'Regional'] as TripCategory[]).map(cat => (
                     <div
@@ -537,7 +598,7 @@ export function ActiveTripTab() {
           {setupStep === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-8">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                <p className="text-xs font-bold text-white uppercase mb-4 flex items-center gap-2">
                   <Users className="h-4 w-4 text-[#00D1FF]" /> Passengers
                 </p>
                 <div className="flex items-center gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
@@ -550,7 +611,7 @@ export function ActiveTripTab() {
               </div>
 
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                <p className="text-xs font-bold text-white uppercase mb-4 flex items-center gap-2">
                   <Dog className="h-4 w-4 text-orange-400" /> Dogs / Pets
                 </p>
                 <div className="flex items-center gap-4 bg-black/20 p-4 rounded-xl border border-white/5">
@@ -563,7 +624,7 @@ export function ActiveTripTab() {
               </div>
 
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                <p className="text-xs font-bold text-white uppercase mb-4 flex items-center gap-2">
                   <Map className="h-4 w-4 text-green-400" /> Car Load (Luggage)
                 </p>
                 <div className="flex flex-col gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
@@ -571,7 +632,7 @@ export function ActiveTripTab() {
                     <Button 
                       key={lvl} 
                       variant={luggage === lvl ? 'default' : 'outline'} 
-                      className={`w-full h-auto py-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest ${luggage === lvl ? 'bg-[#00D1FF] text-black border-transparent' : 'bg-transparent border-white/10 text-slate-400'}`}
+                      className={`w-full h-auto py-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest ${luggage === lvl ? 'bg-[#00D1FF] text-black border-transparent' : 'bg-transparent border-white/10 text-white'}`}
                       onClick={() => setLuggage(lvl)}
                     >
                       <div className="flex flex-col items-center gap-1">
@@ -593,7 +654,7 @@ export function ActiveTripTab() {
               </div>
               
               <div className="text-center">
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest">Estimated Payload</p>
+                <p className="text-[10px] text-white uppercase tracking-widest">Estimated Payload</p>
                 <p className="text-lg font-bold text-[#00D1FF]">~{((peopleCount * 80) + (dogCount * 25) + (luggage === 'Low' ? 10 : luggage === 'Medium' ? 30 : luggage === 'High' ? 60 : 0)).toLocaleString()} kg</p>
               </div>
               
@@ -612,7 +673,7 @@ export function ActiveTripTab() {
             <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                  <label className="text-xs font-bold text-white uppercase flex items-center gap-2">
                     <Map className="h-4 w-4 text-[#00D1FF]" /> Starting Odometer
                   </label>
                   <Input 
@@ -623,7 +684,7 @@ export function ActiveTripTab() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                  <label className="text-xs font-bold text-white uppercase flex items-center gap-2">
                     <Battery className="h-4 w-4 text-green-400" /> Starting Battery SOC
                   </label>
                   <Input 
@@ -634,7 +695,7 @@ export function ActiveTripTab() {
                 </div>
                 
                 <div className="space-y-3 sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                  <label className="text-xs font-bold text-white uppercase flex items-center gap-2">
                     <Clock className="h-4 w-4 text-purple-400" /> Est. Range (km)
                   </label>
                   <Input 
@@ -654,7 +715,7 @@ export function ActiveTripTab() {
                   {!fetchingWeather && <Play className="w-4 h-4 ml-2 inline" fill="currentColor" />}
                 </button>
               </div>
-              <p className="text-[10px] text-center text-slate-500 mt-4 flex items-center justify-center gap-1">
+              <p className="text-[10px] text-center text-white mt-4 flex items-center justify-center gap-1">
                 <CloudSun className="h-3 w-3" /> Location & Weather will be automatically captured.
               </p>
             </div>

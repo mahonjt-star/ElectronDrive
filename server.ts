@@ -32,11 +32,30 @@ async function startServer() {
       const response = await fetch(url);
       const data = await response.json();
 
+      let locationName = "";
+      try {
+        const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
+          headers: { 'User-Agent': 'AI-Studio-Electron-App' }
+        });
+        const nomData = await nomRes.json();
+        if (nomData && nomData.address) {
+          const { suburb, city, town, village, road } = nomData.address;
+          locationName = suburb || town || village || city || road || nomData.name || "";
+        }
+      } catch (err) {
+        console.warn("Reverse geocode failed:", err);
+      }
+
       if (data.success && data.response && data.response.length > 0) {
         const obs = data.response[0].ob;
+        const loc = data.response[0].loc;
         return res.json({
           temp: obs.tempC,
           condition: obs.weatherShort || obs.weather,
+          precip: obs.precipMM || 0,
+          lat: loc?.lat,
+          lon: loc?.long,
+          locationName
         });
       } else {
         return res.status(400).json({ error: "No weather data found", details: data });

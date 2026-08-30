@@ -15,7 +15,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       secondary: "bg-white/5 text-[#E0E6ED] border border-white/10 hover:bg-white/10",
       outline: "border border-[#00D1FF]/50 text-[#00D1FF] hover:bg-[#00D1FF]/10",
       danger: "bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30",
-      ghost: "hover:bg-white/5 text-slate-400 hover:text-white",
+      ghost: "hover:bg-white/5 text-white hover:text-white",
     };
     
     const sizes = {
