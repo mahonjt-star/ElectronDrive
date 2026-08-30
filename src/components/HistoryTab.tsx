@@ -614,7 +614,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
               )}
               
               {trip.charging && (
-                <div className="bg-black/20 p-3 rounded-xl border border-white/5 mt-3">
+                <div className="col-span-2 bg-black/20 p-3 rounded-xl border border-white/5">
                   <div className="text-[10px] uppercase font-bold text-white tracking-widest mb-1 flex items-center gap-1">
                     <Zap className="h-3 w-3 text-yellow-400" /> Charging Session
                   </div>
@@ -635,7 +635,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
                 </div>
               )}
 {trip.payload && (
-                <div className="bg-black/20 p-3 rounded-xl flex items-start gap-3 border border-white/5">
+                <div className="col-span-2 bg-black/20 p-3 rounded-xl flex items-start gap-3 border border-white/5">
                   <Users className="h-5 w-5 text-green-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <div className="text-[10px] uppercase font-bold text-white tracking-widest mb-1">Payload & Load</div>
