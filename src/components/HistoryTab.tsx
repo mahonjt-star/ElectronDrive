@@ -13,6 +13,30 @@ export function HistoryTab() {
   const { user } = useAuth();
   const { trips, loading } = useTrips(user?.uid);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+  
+  const toggleCluster = (ids: string[], selectAll: boolean) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      ids.forEach(id => {
+        if (selectAll) newSet.add(id);
+        else newSet.delete(id);
+      });
+      return newSet;
+    });
+  };
 
   if (loading) {
     return <div className="text-center py-10 text-slate-400">Loading trips...</div>;
@@ -77,16 +101,33 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-4 pb-4 animate-in fade-in duration-500 glass-card p-6 flex-1 flex flex-col overflow-hidden">
-      <h2 className="text-xs font-bold text-white uppercase tracking-widest mb-6">Trip History</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xs font-bold text-white uppercase tracking-widest">Trip History</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => {
+            setSelectionMode(!selectionMode);
+            setSelectedIds(new Set());
+          }}
+          className="text-[10px] h-7"
+        >
+          {selectionMode ? 'Cancel Selection' : 'Select Trips'}
+        </Button>
+      </div>
       <div className="flex-1 space-y-4">
         {groupedTrips.map((item, idx) => {
           if (item.isCluster) {
             return <RoadTripCard 
-              key={`cluster-${idx}`} 
-              cluster={item} 
-              editingId={editingId} 
-              setEditingId={setEditingId} 
-              categoryAverages={categoryAverages}
+               key={`cluster-${idx}`} 
+               cluster={item} 
+               editingId={editingId} 
+               setEditingId={setEditingId} 
+               categoryAverages={categoryAverages}
+               selectionMode={selectionMode}
+               selectedIds={selectedIds}
+               toggleSelection={toggleSelection}
+               toggleCluster={toggleCluster}
             />;
           } else {
             const singleTrip = item as { isCluster: false, trip: Trip };
@@ -103,11 +144,43 @@ export function HistoryTab() {
           }
         })}
       </div>
+      
+      {selectionMode && selectedIds.size > 0 && (
+        <div className="sticky bottom-0 left-0 right-0 mt-4 p-4 glass-card bg-black/80 border-t border-red-500/30 flex items-center justify-between animate-in slide-in-from-bottom-4">
+          <span className="text-sm font-bold text-white">{selectedIds.size} trips selected</span>
+          <Button 
+            variant="danger" 
+            onClick={async () => {
+              if (!showBulkDeleteConfirm) {
+                setShowBulkDeleteConfirm(true);
+                setTimeout(() => setShowBulkDeleteConfirm(false), 3000);
+                return;
+              }
+              setBulkDeleting(true);
+              try {
+                for (const id of Array.from(selectedIds as Set<string>)) {
+                  await deleteDoc(doc(db, 'trips', id));
+                }
+                setSelectedIds(new Set());
+                setSelectionMode(false);
+                setShowBulkDeleteConfirm(false);
+              } catch (err) {
+                console.error('Bulk delete failed', err);
+              }
+              setBulkDeleting(false);
+            }}
+            disabled={bulkDeleting}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {bulkDeleting ? 'Deleting...' : showBulkDeleteConfirm ? 'Confirm Delete' : 'Delete Selected'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
 
-const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, trips: Trip[] }, editingId: string | null, setEditingId: (id: string | null) => void, categoryAverages: Record<string, number> }> = ({ cluster, editingId, setEditingId, categoryAverages }) => {
+const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, trips: Trip[] }, editingId: string | null, setEditingId: (id: string | null) => void, categoryAverages: Record<string, number>, selectionMode?: boolean, selectedIds?: Set<string>, toggleSelection?: (id: string) => void, toggleCluster?: (ids: string[], selectAll: boolean) => void }> = ({ cluster, editingId, setEditingId, categoryAverages, selectionMode, selectedIds, toggleSelection, toggleCluster }) => {
   const [expanded, setExpanded] = useState(false);
   
   const totalDistance = cluster.trips.reduce((acc, t) => acc + t.distanceKm, 0);
@@ -130,14 +203,17 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
 
   // Calculate road trip true range cost if available
   let totalRangeDiff = 0;
+  let totalEstRangeUsed = 0;
   let hasRangeDiff = false;
   cluster.trips.forEach(t => {
     if (t.estRangeUsed && t.estRangeUsed > 0) {
       const diff = (t.rangeDiffKm !== undefined && t.rangeDiffKm !== null) ? t.rangeDiffKm : (t.distanceKm - t.estRangeUsed);
       totalRangeDiff += diff;
+      totalEstRangeUsed += t.estRangeUsed;
       hasRangeDiff = true;
     }
   });
+  const totalRangeAccuracy = totalEstRangeUsed > 0 ? Number(((totalRangeDiff / totalEstRangeUsed) * 100).toFixed(1)) : 0;
 
   const startTime = cluster.trips[cluster.trips.length - 1].startTime;
   const endTime = cluster.trips[0].endTime;
@@ -147,7 +223,24 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
 
   return (
     <div className="p-4 rounded-xl bg-black/40 border border-[#00D1FF]/30 transition-all shadow-[0_0_15px_rgba(0,209,255,0.05)]">
-      <div className="flex justify-between items-start cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <div className="flex justify-between items-start cursor-pointer" onClick={(e) => {
+        if (selectionMode && toggleCluster) {
+          const allSelected = cluster.trips.every(t => selectedIds?.has(t.id!));
+          toggleCluster(cluster.trips.map(t => t.id!), !allSelected);
+          return;
+        }
+        setExpanded(!expanded);
+      }}>
+        {selectionMode && selectedIds && toggleSelection && (
+          <div className="mr-3 mt-1" onClick={(e) => e.stopPropagation()}>
+            <input type="checkbox" className="h-4 w-4 rounded border-white/20 bg-black/20 text-red-500" checked={cluster.trips.every(t => selectedIds.has(t.id!))} onChange={() => {
+              if (toggleCluster) {
+                const allSelected = cluster.trips.every(t => selectedIds?.has(t.id!));
+                toggleCluster(cluster.trips.map(t => t.id!), !allSelected);
+              }
+            }} />
+          </div>
+        )}
         <div>
           <div className="text-sm font-bold text-[#00D1FF] mb-1 flex items-center gap-1.5 uppercase tracking-widest">
             <Route className="h-4 w-4" /> {cluster.name}
@@ -164,7 +257,7 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
           </div>
           {hasRangeDiff && (
             <div className={`text-[10px] font-bold ${totalRangeDiff > 0 ? 'text-green-400' : totalRangeDiff < 0 ? 'text-red-400' : 'text-white'}`}>
-              {totalRangeDiff === 0 ? 'Exact Match' : `${Math.abs(Number(totalRangeDiff.toFixed(1)))} km ${totalRangeDiff < 0 ? 'Overest.' : 'Underest.'}`}
+              {totalRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${Number(totalEstRangeUsed.toFixed(1))}: a ${Math.abs(Number(totalRangeDiff.toFixed(1)))}km (${Math.abs(totalRangeAccuracy)}%) ${totalRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
             </div>
           )}
         </div>
@@ -181,8 +274,27 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
               onEdit={() => setEditingId(trip.id!)}
               onCancelEdit={() => setEditingId(null)}
               categoryAvg={categoryAverages[trip.category]}
+              selectionMode={selectionMode}
+              selectedIds={selectedIds}
+              toggleSelection={toggleSelection}
             />
           ))}
+          <div className="pt-2 flex justify-end relative z-20">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-[10px] h-7 border-[#00D1FF]/30 text-[#00D1FF] hover:bg-[#00D1FF]/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                localStorage.setItem('electron_last_trip_type', 'Road Trip');
+                localStorage.setItem('electron_last_roadtrip_name', cluster.name);
+                window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'log' }));
+              }}
+            >
+              <Route className="h-3 w-3 mr-1.5" />
+              Resume This Road Trip
+            </Button>
+          </div>
         </div>
       )}
       
@@ -195,7 +307,7 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
   );
 }
 
-function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip: Trip, isEditing: boolean, onEdit: () => void, onCancelEdit: () => void, categoryAvg?: number, key?: React.Key }) {
+function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectionMode, selectedIds, toggleSelection }: { trip: Trip, isEditing: boolean, onEdit: () => void, onCancelEdit: () => void, categoryAvg?: number, key?: React.Key, selectionMode?: boolean, selectedIds?: Set<string>, toggleSelection?: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   
   // Edit state
@@ -209,15 +321,19 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
     category: trip.category
   });
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this trip?")) {
-      try {
-        await deleteDoc(doc(db, 'trips', trip.id!));
-      } catch (err) {
-        console.error("Failed to delete", err);
-        alert("Failed to delete trip");
-      }
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      setTimeout(() => setShowDeleteConfirm(false), 3000);
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'trips', trip.id!));
+    } catch (err) {
+      console.error("Failed to delete", err);
     }
   };
 
@@ -229,10 +345,11 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
     const sEst = editData.startEstRange ? parseInt(editData.startEstRange, 10) : null;
     const eEst = editData.endEstRange ? parseInt(editData.endEstRange, 10) : null;
     
-    if (isNaN(sO) || isNaN(eO) || eO < sO) return alert("Invalid odometer values");
-    if (isNaN(sS) || isNaN(eS) || sS < 0 || eS < 0 || sS > 100 || eS > 100) return alert("Invalid SOC values");
-    if ((sEst !== null && (isNaN(sEst) || sEst < 0)) || (eEst !== null && (isNaN(eEst) || eEst < 0))) return alert("Invalid Est. Range values");
+    if (isNaN(sO) || isNaN(eO) || eO < sO) return setEditError("Invalid odometer values");
+    if (isNaN(sS) || isNaN(eS) || sS < 0 || eS < 0 || sS > 100 || eS > 100) return setEditError("Invalid SOC values");
+    if ((sEst !== null && (isNaN(sEst) || sEst < 0)) || (eEst !== null && (isNaN(eEst) || eEst < 0))) return setEditError("Invalid Est. Range values");
 
+    setEditError('');
     setSaving(true);
     try {
       const distanceKm = Number((eO - sO).toFixed(1));
@@ -278,7 +395,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
       onCancelEdit();
     } catch (err) {
       console.error(err);
-      alert("Failed to update");
+      setEditError("Failed to update trip");
     } finally {
       setSaving(false);
     }
@@ -295,11 +412,11 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-white uppercase">Start Odo</label>
+              <label className="text-xs font-bold text-white uppercase">Start Odometer</label>
               <Input type="number" value={editData.startOdo} onChange={e => setEditData({...editData, startOdo: e.target.value})} className="h-10 text-sm" />
             </div>
             <div>
-              <label className="text-xs font-bold text-white uppercase">End Odo</label>
+              <label className="text-xs font-bold text-white uppercase">End Odometer</label>
               <Input type="number" value={editData.endOdo} onChange={e => setEditData({...editData, endOdo: e.target.value})} className="h-10 text-sm" />
             </div>
             <div>
@@ -331,8 +448,9 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
               <option value="Regional">Regional</option>
             </select>
           </div>
+          {editError && <div className="text-red-400 text-xs bg-red-900/20 p-2 rounded-lg border border-red-500/20">{editError}</div>}
           <div className="flex gap-2 pt-2">
-            <Button size="sm" variant="danger" onClick={handleDelete} className="flex-1"><Trash2 className="h-4 w-4 mr-2"/> Delete</Button>
+            <Button size="sm" variant="danger" onClick={handleDelete} className="flex-1"><Trash2 className="h-4 w-4 mr-2"/> {showDeleteConfirm ? 'Confirm?' : 'Delete'}</Button>
             <Button size="sm" onClick={handleSave} disabled={saving} className="flex-1 btn-primary">{saving ? 'Saving...' : 'Save'}</Button>
           </div>
         </div>
@@ -376,7 +494,18 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
 
   return (
     <div className="p-4 rounded-xl bg-white/5 border border-white/5 transition-all hover:bg-white/10 relative">
-      <div className="flex justify-between items-start cursor-pointer" onClick={() => setExpanded(!expanded)}>
+      <div className="flex justify-between items-start cursor-pointer" onClick={(e) => {
+        if (selectionMode && toggleSelection) {
+          toggleSelection(trip.id!);
+          return;
+        }
+        if (!isEditing) setExpanded(!expanded);
+      }}>
+        {selectionMode && selectedIds && toggleSelection && (
+          <div className="mr-3 mt-1" onClick={(e) => e.stopPropagation()}>
+            <input type="checkbox" className="h-4 w-4 rounded border-white/20 bg-black/20 text-red-500" checked={selectedIds.has(trip.id!)} onChange={() => toggleSelection(trip.id!)} />
+          </div>
+        )}
         <div>
           <div className="text-sm font-bold text-white mb-1">
             {format(trip.startTime, 'MMM d, yyyy')}
@@ -393,7 +522,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
           </div>
           {derivedRangeDiff !== null ? (
             <div className={`text-[10px] font-bold ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-white'}`}>
-              {derivedRangeDiff === 0 ? 'Exact Match' : `${Math.abs(derivedRangeDiff)} km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'Overest.' : 'Underest.'}`}
+              {derivedRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${trip.estRangeUsed}: a ${Math.abs(derivedRangeDiff)}km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
             </div>
           ) : (
             <div className="text-[10px] text-white mt-0.5">-{trip.socUsedPct}% SOC</div>
@@ -450,8 +579,8 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
                         </div>
                       )}
                       {trip.weather.waypoints?.map((wp, idx) => (
-                        <div key={idx} className="text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-white/5 pb-2 gap-1">
-                          <span className="text-[#00D1FF]/70 font-bold">Waypoint {idx + 1}</span>
+                        <div key={idx} className="text-xs flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-white/5 pb-2 gap-1 pl-4 ml-2 border-l-2 border-[#00D1FF]/30">
+                          <span className="text-[#00D1FF]/70 font-bold">Interim {idx + 1}</span>
                           <span className="text-slate-300 flex items-center flex-wrap gap-2">
                             <span>{wp.temp}°C, {wp.condition}{wp.precip ? ` (${wp.precip}mm)` : ''}</span>
                             {wp.lat && wp.lon && (
@@ -479,7 +608,29 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
                   </div>
                 </div>
               )}
-              {trip.payload && (
+              
+              {trip.charging && (
+                <div className="bg-black/20 p-3 rounded-xl border border-white/5 mt-3">
+                  <div className="text-[10px] uppercase font-bold text-white tracking-widest mb-1 flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-yellow-400" /> Charging Session
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-widest">Added</div>
+                      <div className="text-sm font-bold text-white">{trip.charging.kwhAdded} <span className="text-[10px] opacity-60">kWh</span></div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-widest">New SOC</div>
+                      <div className="text-sm font-bold text-white">{trip.charging.newSoc} <span className="text-[10px] opacity-60">%</span></div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-widest">Cost</div>
+                      <div className="text-sm font-bold text-white">${trip.charging.cost.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+{trip.payload && (
                 <div className="bg-black/20 p-3 rounded-xl flex items-start gap-3 border border-white/5">
                   <Users className="h-5 w-5 text-green-400 shrink-0 mt-0.5" />
                   <div className="flex-1">
@@ -500,12 +651,12 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
                 <MapPin className={`h-5 w-5 ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-white'}`} />
                 <div className="flex-1">
                   <div className="text-[10px] uppercase font-bold text-white tracking-widest flex justify-between">
-                    <span>True Range Cost</span>
+                    <span>Range: Actual v. Estimated</span>
                   </div>
                   <div className={`text-sm font-bold mt-1 ${derivedRangeDiff > 0 ? 'text-green-400' : derivedRangeDiff < 0 ? 'text-red-400' : 'text-slate-300'}`}>
-                    {derivedRangeDiff === 0 ? 'Exact Match' : `${Math.abs(derivedRangeDiff)} km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'Overestimate' : 'Underestimate'}`}
+                    {derivedRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${trip.estRangeUsed}: a ${Math.abs(derivedRangeDiff)}km (${Math.abs(derivedRangeAccuracy || 0)}%) ${derivedRangeDiff < 0 ? 'overestimate' : 'underestimate'}`}
                   </div>
-                  <div className="text-xs text-white mt-0.5">This {trip.distanceKm} km trip 'cost' {trip.estRangeUsed} km of estimated range.</div>
+                  <div className="text-[10px] text-slate-400 font-normal mt-1 leading-tight">This trip of {trip.distanceKm} actual odometre kilometres consumed {trip.estRangeUsed} km of the vehicle's estimated range (calculated from Start minus End Estimated Range).</div>
                 </div>
               </div>
             )}
@@ -518,7 +669,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg }: { trip
           )}
 
           <div className="flex justify-between items-center text-xs text-white">
-            <div>Odo: <span className="odo-display text-[10px] py-1 px-2 mx-1">{trip.startOdo}</span> → <span className="odo-display text-[10px] py-1 px-2 mx-1">{trip.endOdo}</span></div>
+            <div>Odometer: <span className="odo-display text-[10px] py-1 px-2 mx-1">{trip.startOdo}</span> → <span className="odo-display text-[10px] py-1 px-2 mx-1">{trip.endOdo}</span></div>
             <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-1 text-[#00D1FF] font-bold uppercase tracking-widest hover:text-white transition-colors p-1 text-[10px]">
               <Edit3 className="h-3 w-3" /> Edit
             </button>

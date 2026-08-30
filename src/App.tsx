@@ -11,6 +11,12 @@ function AppContent() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = React.useState<'log' | 'history' | 'analytics'>('log');
 
+  React.useEffect(() => {
+    const handleSwitchTab = (e: CustomEvent) => setActiveTab(e.detail);
+    window.addEventListener('switch-tab', handleSwitchTab as EventListener);
+    return () => window.removeEventListener('switch-tab', handleSwitchTab as EventListener);
+  }, []);
+
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-950">

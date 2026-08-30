@@ -26,6 +26,12 @@ export interface TripPayload {
   estWeightKg: number;
 }
 
+export interface ChargingSession {
+  kwhAdded: number;
+  newSoc: number;
+  cost: number;
+}
+
 export interface Trip {
   id?: string;
   userId: string;
@@ -50,6 +56,7 @@ export interface Trip {
   efficiencyKWhPer100Km: number;
   weather?: TripWeather;
   payload?: TripPayload;
+  charging?: ChargingSession;
   durationMinutes?: number;
   averageSpeedKph?: number;
 }

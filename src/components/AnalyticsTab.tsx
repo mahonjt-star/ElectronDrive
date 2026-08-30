@@ -54,6 +54,7 @@ export function AnalyticsTab() {
       avgEff: Number(avgEff.toFixed(1)),
       avgAccuracy,
       totalRangeDiff: finalRangeDiff,
+      totalEstRangeUsed: Number(totalEstRangeUsed.toFixed(1)),
       avgSpeed
     };
   }, [filteredTrips]);
@@ -128,9 +129,9 @@ export function AnalyticsTab() {
 
   const speedStats = useMemo(() => {
     const categories = [
-      { name: 'Under 50 km/h', filter: (s: number) => s < 50 },
-      { name: '51 - 90 km/h', filter: (s: number) => s >= 50 && s <= 90 },
-      { name: '90+ km/h', filter: (s: number) => s > 90 }
+      { name: 'Low (Under 50 km/h)', filter: (s: number) => s < 50 },
+      { name: 'Medium (51-90 km/h)', filter: (s: number) => s >= 50 && s <= 90 },
+      { name: 'High (90+ km/h)', filter: (s: number) => s > 90 }
     ];
     
     return categories.map(cat => {
@@ -174,6 +175,28 @@ export function AnalyticsTab() {
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
 
+  
+  const chargingStats = useMemo(() => {
+    let totalKwh = 0;
+    let totalCost = 0;
+    let sessionsCount = 0;
+    
+    filteredTrips.forEach(t => {
+      if (t.charging) {
+        totalKwh += t.charging.kwhAdded;
+        totalCost += t.charging.cost;
+        sessionsCount++;
+      }
+    });
+    
+    return {
+      totalKwh: Number(totalKwh.toFixed(1)),
+      totalCost: Number(totalCost.toFixed(2)),
+      avgCostPerKwh: totalKwh > 0 ? Number((totalCost / totalKwh).toFixed(2)) : 0,
+      sessionsCount
+    };
+  }, [filteredTrips]);
+
   const handleExport = () => {
     setExporting(true);
     setTimeout(() => {
@@ -182,7 +205,7 @@ export function AnalyticsTab() {
         return;
       }
       
-      const headers = ['Trip ID', 'Date', 'Start Time', 'End Time', 'Duration (mins)', 'Avg Speed (km/h)', 'Category', 'Trip Type', 'Road Trip Name', 'Start Odo', 'End Odo', 'Distance (km)', 'Start SOC', 'End SOC', 'SOC Used (%)', 'Start Est Range', 'End Est Range', 'Est Range Used', 'Range Diff (km)', 'Range Accuracy (%)', 'Est Energy (kWh)', 'Efficiency (kWh/100km)', 'Season', 'Weather Condition', 'Start Temp (C)', 'End Temp (C)', 'Avg Temp (C)', 'People', 'Dogs', 'Luggage', 'Payload (kg)', 'Notes'];
+      const headers = ['Trip ID', 'Date', 'Start Time', 'End Time', 'Duration (mins)', 'Avg Speed (km/h)', 'Category', 'Trip Type', 'Road Trip Name', 'Start Odometer', 'End Odometer', 'Distance (km)', 'Start SOC', 'End SOC', 'SOC Used (%)', 'Start Est Range', 'End Est Range', 'Est Range Used', 'Range Diff (km)', 'Range Accuracy (%)', 'Energy Used (Est.) (kWh)', 'Efficiency (kWh/100km)', 'Season', 'Weather Condition', 'Start Temp (C)', 'End Temp (C)', 'Avg Temp (C)', 'People', 'Dogs', 'Luggage', 'Payload (kg)', 'Notes', 'Charging Added (kWh)', 'Charging New SOC (%)', 'Charging Cost ($)'];
       const rows = trips.map(t => [
         t.id,
         format(t.startTime, 'yyyy-MM-dd'),
@@ -259,18 +282,20 @@ export function AnalyticsTab() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="glass-card p-5">
           <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
-            <Navigation className="h-4 w-4 text-[#00D1FF]" /> Distance
+            <Navigation className="h-4 w-4 text-[#00D1FF]" /> Distance Travelled
           </div>
           <div className="stat-value">{stats.totalDist.toLocaleString()} <span className="text-xs font-normal opacity-60">km</span></div>
+          <div className="text-[10px] text-slate-400 font-normal mt-1 leading-tight">Actual odometre kilometres driven across selected trips.</div>
         </div>
         <div className="glass-card p-5">
           <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
-            <TrendingDown className="h-4 w-4 text-green-400" /> Efficiency
+            <TrendingDown className="h-4 w-4 text-green-400" /> Driving Efficiency
           </div>
-          <div className="stat-value !text-green-400 !shadow-[0_0_15px_rgba(74,222,128,0.3)]">{stats.avgEff} <span className="text-xs font-normal opacity-60 text-white">kWh/100km</span></div>
+          <div className="stat-value !text-green-400">{stats.avgEff} <span className="text-xs font-normal opacity-60 text-white">kWh/100km</span></div>
+          <div className="text-[10px] text-slate-400 font-normal mt-1 leading-tight">Estimated energy consumed (calculated from SOC % change against the total 82.5 kWh battery) divided by actual odometre distance. Displayed as kWh/100km.</div>
         </div>
       </div>
       
@@ -278,38 +303,65 @@ export function AnalyticsTab() {
         <div className="glass-card p-5 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 text-white mb-1 text-xs font-bold uppercase tracking-widest">
-              <BatteryCharging className="h-4 w-4 text-[#00D1FF]" /> Est. Energy
+              <BatteryCharging className="h-4 w-4 text-[#00D1FF]" /> Energy Used (Est.)
             </div>
             <div className="stat-value text-3xl">{stats.totalEnergy.toLocaleString()} <span className="text-xs font-normal opacity-60">kWh</span></div>
+            <div className="text-[10px] text-slate-400 font-normal mt-1 leading-tight">Estimated energy consumed. Calculated using the SOC % drop against the total 82.5 kWh battery capacity.</div>
           </div>
         </div>
-
         {stats.avgAccuracy !== null && (
           <div className="glass-card p-5 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 text-white mb-1 text-xs font-bold uppercase tracking-widest">
                 <Navigation className={`h-4 w-4 ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-purple-400'}`} /> 
-                True Range Cost
+                Range: Actual v. Estimated
               </div>
               <div className={`stat-value text-xl sm:text-2xl ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-white'}`}>
-                {stats.totalRangeDiff === 0 ? 'Exact Match' : `${Math.abs(stats.totalRangeDiff!)} km ${stats.totalRangeDiff! < 0 ? 'Overestimate' : 'Underestimate'}`}
+                {stats.totalRangeDiff === 0 ? 'Estimate = Odometer Distance' : `${stats.totalEstRangeUsed}km: a ${Math.abs(stats.totalRangeDiff!)} km (${Math.abs(stats.avgAccuracy!)}%) ${stats.totalRangeDiff! < 0 ? 'overestimate' : 'underestimate'}`}
               </div>
-              <div className={`text-xs mt-1 ${stats.avgAccuracy > 0 ? 'text-green-400' : stats.avgAccuracy < 0 ? 'text-red-400' : 'text-white'}`}>
-                {stats.avgAccuracy === 0 ? '0% variance' : `Avg ${Math.abs(stats.avgAccuracy)}% ${stats.avgAccuracy < 0 ? 'overestimated range cost' : 'underestimated range cost'}`}
-              </div>
+              <div className="text-[10px] text-slate-400 font-normal mt-1 leading-tight">Compares actual odometre kilometres driven against the vehicle's estimated range lost (Start Estimated Range minus End Estimated Range).</div>
             </div>
           </div>
         )}
       </div>
+
+      
+      {chargingStats.sessionsCount > 0 && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mt-4">
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Charging Analytics</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="glass-card p-5">
+              <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
+                 Total Added
+              </div>
+              <div className="stat-value text-2xl text-yellow-400">{chargingStats.totalKwh.toLocaleString()} <span className="text-xs font-normal opacity-60 text-white">kWh</span></div>
+            </div>
+            <div className="glass-card p-5">
+              <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
+                 Total Cost
+              </div>
+              <div className="stat-value text-2xl">${chargingStats.totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div className="glass-card p-5">
+              <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
+                 Avg Cost / kWh
+              </div>
+              <div className="stat-value text-2xl text-[#00D1FF]">${chargingStats.avgCostPerKwh.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} <span className="text-xs font-normal opacity-60 text-white">/ kWh</span></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {categoryStats.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center mt-4">
             <h3 className="text-xs font-bold text-white uppercase tracking-widest">Category Performance</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {categoryStats.map(cat => (
-              <div key={cat.name} className="glass-card p-4 rounded-xl flex flex-col justify-between">
+              <div key={cat.name} className="glass-card p-4 rounded-xl flex flex-col justify-between h-full">
                 <div className="flex items-center gap-2 mb-3">
                   <div className={`w-2 h-2 rounded-full ${
                     cat.name === 'Urban' ? 'bg-[#00D1FF]' : 
@@ -339,7 +391,7 @@ export function AnalyticsTab() {
                     {cat.rangeBiasPct !== null ? (
                       <div className={`text-right ${cat.rangeBiasPct > 0 ? 'text-green-400' : cat.rangeBiasPct < 0 ? 'text-red-400' : 'text-white'}`}>
                         <div className="text-sm font-bold">
-                          {cat.rangeBiasPct === 0 ? 'Exact' : `${Math.abs(cat.rangeBiasPct)}% ${cat.rangeBiasPct < 0 ? 'Over' : 'Under'}`}
+                          {cat.totalRangeDiff === 0 ? 'Exact' : `${Math.abs(cat.totalRangeDiff)}km (${Math.abs(cat.rangeBiasPct)}%) ${cat.totalRangeDiff < 0 ? 'Over' : 'Under'}`}
                         </div>
                       </div>
                     ) : (
@@ -358,10 +410,16 @@ export function AnalyticsTab() {
           <div className="flex justify-between items-center mt-6">
             <h3 className="text-xs font-bold text-white uppercase tracking-widest">Seasonal Performance</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {seasonStats.map(season => (
-              <div key={season.name} className="glass-card p-4 rounded-xl flex flex-col justify-between">
+              <div key={season.name} className="glass-card p-4 rounded-xl flex flex-col justify-between h-full">
                 <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    season.name === 'Summer' ? 'bg-yellow-400' :
+                    season.name === 'Winter' ? 'bg-[#00D1FF]' :
+                    season.name === 'Spring' ? 'bg-green-400' :
+                    'bg-orange-400'
+                  }`}></div>
                   <span className="text-sm font-bold text-white uppercase tracking-widest">{season.name}</span>
                 </div>
                 
@@ -381,7 +439,7 @@ export function AnalyticsTab() {
                     {season.rangeBiasPct !== null ? (
                       <div className={`text-right ${season.rangeBiasPct > 0 ? 'text-green-400' : season.rangeBiasPct < 0 ? 'text-red-400' : 'text-white'}`}>
                         <div className="text-sm font-bold">
-                          {season.rangeBiasPct === 0 ? 'Exact' : `${Math.abs(season.rangeBiasPct)}% ${season.rangeBiasPct < 0 ? 'Over' : 'Under'}`}
+                          {season.totalRangeDiff === 0 ? 'Exact' : `${Math.abs(season.totalRangeDiff)}km (${Math.abs(season.rangeBiasPct)}%) ${season.totalRangeDiff < 0 ? 'Over' : 'Under'}`}
                         </div>
                       </div>
                     ) : (
@@ -399,10 +457,15 @@ export function AnalyticsTab() {
           <div className="flex justify-between items-center mt-6">
             <h3 className="text-xs font-bold text-white uppercase tracking-widest">Speed Impact</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {speedStats.map(speed => (
-              <div key={speed.name} className="glass-card p-4 rounded-xl flex flex-col justify-between">
+              <div key={speed.name} className="glass-card p-4 rounded-xl flex flex-col justify-between h-full">
                 <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    speed.name.includes('Low') ? 'bg-green-400' :
+                    speed.name.includes('Medium') ? 'bg-yellow-400' :
+                    'bg-red-400'
+                  }`}></div>
                   <span className="text-sm font-bold text-white uppercase tracking-widest">{speed.name}</span>
                 </div>
                 <div className="space-y-3">
@@ -430,10 +493,15 @@ export function AnalyticsTab() {
           <div className="flex justify-between items-center mt-6">
             <h3 className="text-xs font-bold text-white uppercase tracking-widest">Payload Impact</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {payloadStats.map(payload => (
-              <div key={payload.name} className="glass-card p-4 rounded-xl flex flex-col justify-between">
+              <div key={payload.name} className="glass-card p-4 rounded-xl flex flex-col justify-between h-full">
                 <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    payload.name.includes('Light') ? 'bg-green-400' :
+                    payload.name.includes('Medium') ? 'bg-yellow-400' :
+                    'bg-red-400'
+                  }`}></div>
                   <span className="text-sm font-bold text-white uppercase tracking-widest">{payload.name}</span>
                 </div>
                 <div className="space-y-3">

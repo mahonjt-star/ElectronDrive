@@ -6,7 +6,7 @@ import { useTrips } from '../hooks/useTrips';
 import { TripCategory, TripType, WeatherSnapshot } from '../types';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { Play, Square, Battery, Map, Clock, AlertTriangle, Route, CloudSun, Users, Dog, ChevronRight, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { Play, Square, Battery, Map, Clock, AlertTriangle, Route, CloudSun, Users, Dog, ChevronRight, ChevronLeft, CheckCircle2, Zap } from 'lucide-react';
 import { fetchWeather, getCurrentLocation, getSeason } from '../lib/weather';
 
 interface ActiveTripState {
@@ -48,6 +48,10 @@ export function ActiveTripTab() {
   const [endOdo, setEndOdo] = useState<string>('');
   const [endSOC, setEndSOC] = useState<string>('');
   const [endEstRange, setEndEstRange] = useState<string>('');
+  const [logCharging, setLogCharging] = useState(false);
+  const [chargingKwh, setChargingKwh] = useState<string>('');
+  const [chargingSoc, setChargingSoc] = useState<string>('');
+  const [chargingCost, setChargingCost] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [saving, setSaving] = useState(false);
@@ -200,6 +204,17 @@ export function ActiveTripTab() {
       }
 
       const distanceKm = Number((endO - activeTrip.startOdo).toFixed(1));
+    
+    let charging = undefined;
+    if (logCharging) {
+      const kwh = parseFloat(chargingKwh);
+      const soc = parseFloat(chargingSoc);
+      const cost = parseFloat(chargingCost);
+      if (isNaN(kwh) || isNaN(soc) || isNaN(cost)) {
+        return setError('Invalid charging details');
+      }
+      charging = { kwhAdded: kwh, newSoc: soc, cost: cost };
+    }
       const socUsedPct = activeTrip.startSOC - endS;
       
       let estRangeUsed: number | undefined = undefined;
@@ -288,7 +303,8 @@ export function ActiveTripTab() {
         estKWhUsed,
         efficiencyKWhPer100Km,
         weather: tripWeather ?? null,
-        payload: activeTrip.payload ?? null,
+        payload: activeTrip.payload,
+        charging: charging ?? null,
         durationMinutes,
         averageSpeedKph
       });
@@ -412,7 +428,7 @@ export function ActiveTripTab() {
           
           <div className="grid grid-cols-2 gap-4 mt-2 relative z-10">
             <div>
-              <p className="text-xs font-bold text-white uppercase mb-3">Starting Odo</p>
+              <p className="text-xs font-bold text-white uppercase mb-3">Starting Odometer</p>
               <div className="odo-display text-2xl font-bold">{activeTrip.startOdo} <span className="text-sm text-white">km</span></div>
             </div>
             <div>
@@ -472,7 +488,7 @@ export function ActiveTripTab() {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-white uppercase">End Odometer (km)</label>
+                  <label className="text-xs font-bold text-white uppercase flex flex-col"><span>End Odometer (km)</span><span className="text-[10px] text-transparent select-none font-normal lowercase tracking-normal">(spacer)</span></label>
                   <Input 
                     type="number" inputMode="decimal"
                     value={endOdo} onChange={(e) => setEndOdo(e.target.value)}
@@ -480,7 +496,7 @@ export function ActiveTripTab() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-white uppercase">End Battery SOC (%)</label>
+                  <label className="text-xs font-bold text-white uppercase flex flex-col"><span>Arrival Battery %</span><span className="text-[10px] text-white/60 font-normal lowercase tracking-normal">(Your battery level right as you parked)</span></label>
                   <Input 
                     type="number" inputMode="numeric"
                     value={endSOC} onChange={(e) => setEndSOC(e.target.value)}
@@ -488,16 +504,47 @@ export function ActiveTripTab() {
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <label className="text-xs font-bold text-white uppercase">End Est. Range (km)</label>
+                  <label className="text-xs font-bold text-white uppercase">Arrival Est. Range (km)</label>
                   <Input 
                     type="number" inputMode="numeric"
                     value={endEstRange} onChange={(e) => setEndEstRange(e.target.value)}
                     placeholder="Car's estimated range remaining"
                   />
                 </div>
+              
               </div>
 
+              {(activeTrip.category === 'Peri-Urban' || activeTrip.category === 'Regional' || activeTrip.tripType === 'Road Trip') && (
+                <div className="pt-4 border-t border-white/5 space-y-4">
+                  <button
+                    onClick={() => setLogCharging(!logCharging)}
+                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-bold uppercase tracking-widest text-xs ${logCharging ? 'border-yellow-400/50 bg-yellow-400/10 text-yellow-400 glow-accent shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'border-white/10 bg-white/5 text-white hover:bg-white/10'}`}
+                  >
+                    <Zap className="h-4 w-4" /> 
+                    {logCharging ? 'Cancel Charging Session' : 'Add Charging Session'}
+                  </button>
+                  
+                  {logCharging && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 rounded-xl border border-yellow-400/30 bg-[rgba(250,204,21,0.05)] shadow-[inset_0_0_20px_rgba(250,204,21,0.05)] animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-yellow-400/80 uppercase tracking-widest">Added kWh</label>
+                        <Input type="number" inputMode="decimal" value={chargingKwh} onChange={(e) => setChargingKwh(e.target.value)} placeholder="e.g. 45.2" className="h-10 text-sm bg-black/40 border-yellow-400/20" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-yellow-400/80 uppercase tracking-widest flex flex-col"><span>Post-Charge Battery %</span><span className="text-[9px] text-yellow-400/60 lowercase tracking-normal font-normal mt-0.5">(When unplugged)</span></label>
+                        <Input type="number" inputMode="numeric" value={chargingSoc} onChange={(e) => setChargingSoc(e.target.value)} placeholder="e.g. 80" className="h-10 text-sm bg-black/40 border-yellow-400/20" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-yellow-400/80 uppercase tracking-widest">Total Cost ($)</label>
+                        <Input type="number" inputMode="decimal" value={chargingCost} onChange={(e) => setChargingCost(e.target.value)} placeholder="e.g. 24.50" className="h-10 text-sm bg-black/40 border-yellow-400/20" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
+
                 <Button variant="outline" className="w-full sm:flex-1 uppercase tracking-widest text-xs h-14 bg-white/5 border-white/10 text-white hover:bg-white/10" onClick={() => setIsEndingTrip(false)}>
                   Cancel
                 </Button>
@@ -562,12 +609,38 @@ export function ActiveTripTab() {
                 {tripType === 'Road Trip' && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-2 mt-4">
                     <label className="text-xs font-bold text-white uppercase">Road Trip Name</label>
+                    
                     <Input 
                       type="text" 
+                      list="recent-road-trips"
                       value={roadTripName} 
                       onChange={(e) => setRoadTripName(e.target.value)}
                       placeholder="e.g. Summer Vacation 2026"
                     />
+                    
+                    {(() => {
+                      const recentTrips = Array.from(new Set(trips.filter(t => t.tripType === 'Road Trip' && t.roadTripName).map(t => t.roadTripName))).slice(0, 5);
+                      if (recentTrips.length > 0) {
+                        return (
+                          <div className="mt-3">
+                            <p className="text-[10px] font-bold text-white/60 uppercase mb-2">Or Resume Recent Road Trip:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {recentTrips.map(name => (
+                                <button
+                                  key={name}
+                                  onClick={() => setRoadTripName(name || '')}
+                                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/30 text-xs text-[#00D1FF] transition-all flex items-center gap-1"
+                                >
+                                  <Route className="h-3 w-3" /> {name}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+
                   </div>
                 )}
               </div>
@@ -587,8 +660,21 @@ export function ActiveTripTab() {
                 </div>
               </div>
               
-              <div className="pt-4">
-                <Button className="w-full h-12 uppercase tracking-widest font-bold" onClick={() => setSetupStep(2)}>
+              <div className="pt-4 flex gap-3 flex-col sm:flex-row">
+                <Button variant="outline" className="w-full sm:w-auto sm:flex-1 h-12 uppercase tracking-widest font-bold bg-white/5 border-white/10" onClick={() => {
+                  setTripType('Single');
+                  setRoadTripName('');
+                  setCategory('Urban');
+                  setPeopleCount(1);
+                  setDogCount(0);
+                  setLuggage('Low');
+                  setStartSOC('');
+                  setStartEstRange('');
+                  window.dispatchEvent(new CustomEvent('switch-tab', { detail: 'history' }));
+                }}>
+                  Cancel
+                </Button>
+                <Button className="w-full sm:flex-[2] h-12 uppercase tracking-widest font-bold" onClick={() => setSetupStep(2)}>
                   Next Step <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
@@ -627,7 +713,7 @@ export function ActiveTripTab() {
                 <p className="text-xs font-bold text-white uppercase mb-4 flex items-center gap-2">
                   <Map className="h-4 w-4 text-green-400" /> Car Load (Luggage)
                 </p>
-                <div className="flex flex-col gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
+                <div className="flex flex-col gap-3 bg-black/20 p-4 rounded-xl border border-white/5">
                   {(['Low', 'Medium', 'High'] as const).map(lvl => (
                     <Button 
                       key={lvl} 
