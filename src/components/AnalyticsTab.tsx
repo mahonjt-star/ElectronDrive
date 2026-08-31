@@ -370,6 +370,10 @@ export function AnalyticsTab() {
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Trips</span>
+                    <span className="text-sm font-bold">{season.count} <span className="text-[10px] opacity-60 text-white">({Math.round((season.count / filteredTrips.length) * 100)}%)</span></span>
+                  </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Distance</span>
                     <span className="text-sm font-bold">{season.distance.toLocaleString()} km</span>
                   </div>
@@ -416,6 +420,10 @@ export function AnalyticsTab() {
                 </div>
                 
                 <div className="space-y-3">
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Trips</span>
+                    <span className="text-sm font-bold">{cat.count} <span className="text-[10px] opacity-60 text-white">({Math.round((cat.count / filteredTrips.length) * 100)}%)</span></span>
+                  </div>
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Total Distance</span>
                     <span className="text-sm font-bold">{cat.distance.toLocaleString()} km</span>
@@ -466,6 +474,10 @@ export function AnalyticsTab() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Trips</span>
+                    <span className="text-sm font-bold">{speed.count} <span className="text-[10px] opacity-60 text-white">({Math.round((speed.count / filteredTrips.length) * 100)}%)</span></span>
+                  </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Distance</span>
                     <span className="text-sm font-bold">{speed.distance.toLocaleString()} km</span>
                   </div>
@@ -501,6 +513,10 @@ export function AnalyticsTab() {
                   <span className="text-sm font-bold text-white uppercase tracking-widest">{payload.name}</span>
                 </div>
                 <div className="space-y-3">
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">Trips</span>
+                    <span className="text-sm font-bold">{payload.count} <span className="text-[10px] opacity-60 text-white">({Math.round((payload.count / filteredTrips.length) * 100)}%)</span></span>
+                  </div>
                   <div className="flex justify-between items-end border-b border-white/5 pb-2">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Distance</span>
                     <span className="text-sm font-bold">{payload.distance.toLocaleString()} km</span>

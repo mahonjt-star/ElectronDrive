@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Trip } from '../types';
 import { useAuth } from '../hooks/AuthContext';
@@ -12,11 +12,16 @@ import { Input } from './ui/Input';
 export function HistoryTab() {
   const { user } = useAuth();
   const { trips, loading } = useTrips(user?.uid);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [showBundleInput, setShowBundleInput] = useState(false);
+  const [bundleName, setBundleName] = useState('');
+  const [isBundling, setIsBundling] = useState(false);
+  const [isUnbundling, setIsUnbundling] = useState(false);
 
   const toggleSelection = (id: string) => {
     setSelectedIds(prev => {
@@ -139,6 +144,9 @@ export function HistoryTab() {
                 onEdit={() => setEditingId(singleTrip.trip.id!)}
                 onCancelEdit={() => setEditingId(null)}
                 categoryAvg={categoryAverages[singleTrip.trip.category]}
+                selectionMode={selectionMode}
+                selectedIds={selectedIds}
+                toggleSelection={toggleSelection}
               />
             );
           }
@@ -146,34 +154,94 @@ export function HistoryTab() {
       </div>
       
       {selectionMode && selectedIds.size > 0 && (
-        <div className="sticky bottom-0 left-0 right-0 mt-4 p-4 glass-card bg-black/80 border-t border-red-500/30 flex items-center justify-between animate-in slide-in-from-bottom-4">
-          <span className="text-sm font-bold text-white">{selectedIds.size} trips selected</span>
-          <Button 
-            variant="danger" 
-            onClick={async () => {
-              if (!showBulkDeleteConfirm) {
-                setShowBulkDeleteConfirm(true);
-                setTimeout(() => setShowBulkDeleteConfirm(false), 3000);
-                return;
-              }
-              setBulkDeleting(true);
-              try {
-                for (const id of Array.from(selectedIds as Set<string>)) {
-                  await deleteDoc(doc(db, 'trips', id));
-                }
-                setSelectedIds(new Set());
-                setSelectionMode(false);
-                setShowBulkDeleteConfirm(false);
-              } catch (err) {
-                console.error('Bulk delete failed', err);
-              }
-              setBulkDeleting(false);
-            }}
-            disabled={bulkDeleting}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {bulkDeleting ? 'Deleting...' : showBulkDeleteConfirm ? 'Confirm Delete' : 'Delete Selected'}
-          </Button>
+        <div className="sticky bottom-0 left-0 right-0 mt-4 p-4 glass-card bg-black/90 border-t border-[#00D1FF]/30 flex flex-col gap-3 animate-in slide-in-from-bottom-4 z-50">
+          {showBundleInput ? (
+            <div className="flex flex-col gap-3 w-full">
+              <div className="text-sm font-bold text-[#00D1FF]">Name this Road Trip</div>
+              <input 
+                type="text" 
+                className="input-field bg-black/50 border-[#00D1FF]/30 text-white" 
+                placeholder="e.g. Great Ocean Road" 
+                value={bundleName} 
+                onChange={e => setBundleName(e.target.value)} 
+                autoFocus 
+              />
+              <div className="flex gap-2 justify-end mt-2">
+                <Button variant="ghost" onClick={() => setShowBundleInput(false)}>Cancel</Button>
+                <Button variant="primary" disabled={isBundling || !bundleName.trim()} onClick={async () => {
+                  setIsBundling(true);
+                  try {
+                    for (const id of Array.from(selectedIds as Set<string>)) {
+                      await updateDoc(doc(db, 'trips', id), { tripType: 'Road Trip', roadTripName: bundleName.trim() });
+                    }
+                    setSelectedIds(new Set());
+                    setSelectionMode(false);
+                    setShowBundleInput(false);
+                    setBundleName('');
+                  } catch (err) {
+                    console.error('Bundle failed', err);
+                  }
+                  setIsBundling(false);
+                }}>
+                  {isBundling ? 'Saving...' : 'Bundle Trips'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 w-full">
+              <span className="text-sm font-bold text-white">{selectedIds.size} trips selected</span>
+              <div className="flex items-center gap-2">
+                {Array.from(selectedIds).some(id => trips.find(t => t.id === id)?.tripType === 'Road Trip') && (
+                  <Button variant="outline" disabled={isUnbundling} onClick={async () => {
+                    setIsUnbundling(true);
+                    try {
+                      for (const id of Array.from(selectedIds as Set<string>)) {
+                        await updateDoc(doc(db, 'trips', id), { tripType: 'Single', roadTripName: '' });
+                      }
+                      setSelectedIds(new Set());
+                      setSelectionMode(false);
+                    } catch (err) {
+                      console.error('Unbundle failed', err);
+                    }
+                    setIsUnbundling(false);
+                  }}>
+                    {isUnbundling ? 'Unbundling...' : 'Un-Bundle'}
+                  </Button>
+                )}
+                {selectedIds.size >= 2 && (
+                  <Button variant="secondary" onClick={() => setShowBundleInput(true)}>
+                    <Route className="h-4 w-4 mr-2" /> Bundle
+                  </Button>
+                )}
+                <Button 
+                  variant="danger" 
+                  onClick={async () => {
+                    if (!showBulkDeleteConfirm) {
+                      setShowBulkDeleteConfirm(true);
+                      setTimeout(() => setShowBulkDeleteConfirm(false), 3000);
+                      return;
+                    }
+                    setBulkDeleting(true);
+                    try {
+                      for (const id of Array.from(selectedIds as Set<string>)) {
+                        await deleteDoc(doc(db, 'trips', id));
+                      }
+                      setSelectedIds(new Set());
+                      setSelectionMode(false);
+                      setShowBulkDeleteConfirm(false);
+                    } catch (err) {
+                      console.error('Bulk delete failed', err);
+                    }
+                    setBulkDeleting(false);
+                  }}
+                  disabled={bulkDeleting}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {bulkDeleting ? 'Deleting...' : showBulkDeleteConfirm ? 'Confirm Delete' : 'Delete'}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -511,8 +579,15 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
           </div>
         )}
         <div>
-          <div className="text-sm font-bold text-white mb-1">
+          <div className="text-sm font-bold text-white mb-1 flex items-center gap-2">
             {format(trip.startTime, 'MMM d, yyyy')}
+            {trip.weather?.start?.locationName && (
+              <span className="text-[10px] font-normal text-slate-300 flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {trip.weather.start.locationName}
+                {trip.weather.end?.locationName && ` → ${trip.weather.end.locationName}`}
+              </span>
+            )}
           </div>
           <div className="text-[10px] text-white uppercase tracking-widest flex items-center gap-1 mt-1 flex-wrap">
             <Clock className="h-3 w-3" /> {format(trip.startTime, 'h:mm a')} • {trip.category} • {trip.distanceKm} km

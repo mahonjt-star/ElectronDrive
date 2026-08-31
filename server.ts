@@ -35,7 +35,7 @@ async function startServer() {
       let locationName = "";
       try {
         const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`, {
-          headers: { 'User-Agent': 'AI-Studio-Electron-App' }
+          headers: { 'User-Agent': 'EV-Trip-Logger-App/1.0 (mahonjt@gmail.com)' }
         });
         const nomData = await nomRes.json();
         if (nomData && nomData.address) {
