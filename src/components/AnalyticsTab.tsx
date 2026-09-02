@@ -28,6 +28,8 @@ export function AnalyticsTab() {
     const totalEnergy = filteredTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
     const avgEff = totalDist > 0 ? (totalEnergy / totalDist) * 100 : 0;
     
+    const totalSoc = filteredTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
+    const avgKmPerPct = totalSoc > 0 ? Number((totalDist / totalSoc).toFixed(1)) : 0;
     const totalDur = filteredTrips.reduce((acc, t) => acc + (t.durationMinutes || 0), 0);
     const avgSpeed = totalDur > 0 ? Number((totalDist / (totalDur / 60)).toFixed(1)) : 0;
     
@@ -55,7 +57,8 @@ export function AnalyticsTab() {
       avgAccuracy,
       totalRangeDiff: finalRangeDiff,
       totalEstRangeUsed: Number(totalEstRangeUsed.toFixed(1)),
-      avgSpeed
+      avgSpeed,
+      avgKmPerPct
     };
   }, [filteredTrips]);
 
@@ -65,6 +68,8 @@ export function AnalyticsTab() {
       const catTrips = filteredTrips.filter(t => t.category === cat);
       const dist = catTrips.reduce((acc, t) => acc + t.distanceKm, 0);
       const energy = catTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
+      const totalSoc = catTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
+      const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       let totalEstRangeUsed = 0;
@@ -88,7 +93,8 @@ export function AnalyticsTab() {
         efficiency: eff,
         count: catTrips.length,
         rangeBiasPct: avgAccuracy,
-        totalRangeDiff: totalEstRangeUsed > 0 ? Number(totalRangeDiff.toFixed(1)) : null
+        totalRangeDiff: totalEstRangeUsed > 0 ? Number(totalRangeDiff.toFixed(1)) : null,
+        avgKmPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -99,6 +105,8 @@ export function AnalyticsTab() {
       const seasonTrips = filteredTrips.filter(t => t.weather?.season === season);
       const dist = seasonTrips.reduce((acc, t) => acc + t.distanceKm, 0);
       const energy = seasonTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
+      const totalSoc = seasonTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
+      const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       let totalEstRangeUsed = 0;
@@ -122,7 +130,8 @@ export function AnalyticsTab() {
         efficiency: eff,
         count: seasonTrips.length,
         rangeBiasPct: avgAccuracy,
-        totalRangeDiff: totalEstRangeUsed > 0 ? Number(totalRangeDiff.toFixed(1)) : null
+        totalRangeDiff: totalEstRangeUsed > 0 ? Number(totalRangeDiff.toFixed(1)) : null,
+        avgKmPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -138,6 +147,8 @@ export function AnalyticsTab() {
       const catTrips = filteredTrips.filter(t => t.averageSpeedKph !== undefined && cat.filter(t.averageSpeedKph));
       const dist = catTrips.reduce((acc, t) => acc + t.distanceKm, 0);
       const energy = catTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
+      const totalSoc = catTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
+      const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       const totalDur = catTrips.reduce((acc, t) => acc + (t.durationMinutes || 0), 0);
@@ -148,7 +159,8 @@ export function AnalyticsTab() {
         distance: Number(dist.toFixed(0)),
         efficiency: eff,
         avgSpeed,
-        count: catTrips.length
+        count: catTrips.length,
+        avgKmPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -164,13 +176,16 @@ export function AnalyticsTab() {
       const catTrips = filteredTrips.filter(t => t.payload?.estWeightKg !== undefined && cat.filter(t.payload.estWeightKg));
       const dist = catTrips.reduce((acc, t) => acc + t.distanceKm, 0);
       const energy = catTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
+      const totalSoc = catTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
+      const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       return {
         name: cat.name,
         distance: Number(dist.toFixed(0)),
         efficiency: eff,
-        count: catTrips.length
+        count: catTrips.length,
+        avgKmPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -261,7 +276,7 @@ export function AnalyticsTab() {
   return (
     <div className="space-y-6 pb-6 animate-in fade-in duration-500 flex-1 flex flex-col">
       <div className="flex justify-between items-center px-1">
-        <h2 className="text-xs font-bold text-white uppercase tracking-widest">Fleet Analytics</h2>
+        <h2 className="text-xs font-bold text-white uppercase tracking-widest">Vehicle Analytics</h2>
         <Button variant="ghost" size="sm" onClick={handleExport} disabled={exporting || trips.length === 0} className="h-10 px-3 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[#00D1FF] hover:bg-white/5 border border-white/5 bg-black/20">
           {exporting ? <CheckCircle2 className="h-4 w-4 mr-1.5" /> : <Download className="h-4 w-4 mr-1.5" />}
           {exporting ? 'Exported' : 'CSV'}
@@ -282,12 +297,17 @@ export function AnalyticsTab() {
         ))}
       </div>
 
+      <div className="flex justify-between items-center mt-2 px-1">
+        <h3 className="text-xs font-bold text-white uppercase tracking-widest">Vehicle Performance (All Trips)</h3>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="glass-card p-5 h-full flex flex-col min-w-0">
           <div className="flex items-center gap-2 text-white mb-2 text-xs font-bold uppercase tracking-widest">
             <Navigation className="h-4 w-4 text-[#00D1FF] shrink-0" /> Distance Travelled
           </div>
           <div className="stat-value text-3xl mb-2 truncate">{stats.totalDist.toLocaleString()} <span className="text-xs font-normal opacity-60">km</span></div>
+          <div className="text-sm font-bold text-[#00D1FF] mb-3">{stats.avgKmPerPct} <span className="text-[10px] font-normal opacity-60 text-white">km / % SOC</span></div>
           <div className="text-[10px] text-slate-400 font-normal mt-auto leading-tight">Actual odometre kilometres driven across selected trips.</div>
         </div>
         <div className="glass-card p-5 h-full flex flex-col min-w-0">
@@ -382,6 +402,10 @@ export function AnalyticsTab() {
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{season.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
+                    <span className="text-sm font-bold text-white">{season.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
+                  </div>
                   
                   <div className="flex justify-between items-end pt-1">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Range Bias</span>
@@ -437,6 +461,10 @@ export function AnalyticsTab() {
                       'text-green-400'
                     }`}>{cat.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
+                    <span className="text-sm font-bold text-white">{cat.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
+                  </div>
                   
                   <div className="flex justify-between items-end pt-1">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Range Bias</span>
@@ -453,6 +481,9 @@ export function AnalyticsTab() {
                 </div>
               </div>
             ))}
+          </div>
+          <div className="text-[10px] text-white/70 italic px-1 mt-2">
+            Note: Peri-Urban trips are most efficient as the vehicle avoids a high penalty for the fixed cost of software (and other ancillary functions) and significantly decreased aerodynamic efficiency.
           </div>
         </div>
       )}
@@ -489,9 +520,16 @@ export function AnalyticsTab() {
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{speed.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
+                  <div className="flex justify-between items-end pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
+                    <span className="text-sm font-bold text-white">{speed.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+          <div className="text-[10px] text-white/70 italic px-1 mt-2">
+            Note: Medium Speed trips are most efficient as the vehicle avoids a high penalty for the fixed cost of software (and other ancillary functions) and significantly decreased aerodynamic efficiency.
           </div>
         </div>
       )}
@@ -524,6 +562,10 @@ export function AnalyticsTab() {
                   <div className="flex justify-between items-end">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{payload.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
+                  </div>
+                  <div className="flex justify-between items-end pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
+                    <span className="text-sm font-bold text-white">{payload.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
                   </div>
                 </div>
               </div>

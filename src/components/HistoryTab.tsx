@@ -253,6 +253,7 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
   
   const totalDistance = cluster.trips.reduce((acc, t) => acc + t.distanceKm, 0);
   const totalEnergy = cluster.trips.reduce((acc, t) => acc + t.estKWhUsed, 0);
+  const totalSoc = cluster.trips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
   const avgEfficiency = totalDistance > 0 ? Number(((totalEnergy / totalDistance) * 100).toFixed(1)) : 0;
   
   // Calculate average of expected efficiency based on category mix
@@ -317,6 +318,7 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
             {format(startTime, 'MMM d')} - {format(endTime, 'MMM d, yyyy')} • {cluster.trips.length} Legs • {totalDistance.toFixed(1)} km
             {totalDuration > 0 && ` • ${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`}
             {avgSpeed && ` • ${avgSpeed} km/h`}
+            {totalSoc > 0 && ` • ${(totalDistance / totalSoc).toFixed(1)} km/%`}
           </div>
         </div>
         <div className="text-right flex flex-col items-end gap-1">
@@ -593,6 +595,7 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
             <Clock className="h-3 w-3" /> {format(trip.startTime, 'h:mm a')} • {trip.category} • {trip.distanceKm} km
             {trip.durationMinutes && ` • ${Math.floor(trip.durationMinutes / 60)}h ${trip.durationMinutes % 60}m`}
             {trip.averageSpeedKph && ` • ${trip.averageSpeedKph} km/h`}
+            {trip.socUsedPct > 0 && ` • ${(trip.distanceKm / trip.socUsedPct).toFixed(1)} km/%`}
           </div>
         </div>
         <div className="text-right flex flex-col items-end gap-1">
