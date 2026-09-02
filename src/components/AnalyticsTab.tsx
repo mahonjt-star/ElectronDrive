@@ -22,7 +22,7 @@ export function AnalyticsTab() {
   }, [trips, timeframe]);
 
   const stats = useMemo(() => {
-    if (!filteredTrips.length) return { totalDist: 0, totalEnergy: 0, avgEff: 0, avgAccuracy: null as number | null, totalRangeDiff: null as number | null, avgSpeed: 0 };
+    if (!filteredTrips.length) return { totalDist: 0, totalEnergy: 0, avgEff: 0, avgAccuracy: null as number | null, totalRangeDiff: null as number | null, avgSpeed: 0, avgKmPerPct: 0, avgKmPerKwh: 0, avgKwhPerPct: 0, totalEstRangeUsed: 0 };
     
     const totalDist = filteredTrips.reduce((acc, t) => acc + t.distanceKm, 0);
     const totalEnergy = filteredTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
@@ -30,6 +30,8 @@ export function AnalyticsTab() {
     
     const totalSoc = filteredTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
     const avgKmPerPct = totalSoc > 0 ? Number((totalDist / totalSoc).toFixed(1)) : 0;
+    const avgKmPerKwh = totalEnergy > 0 ? Number((totalDist / totalEnergy).toFixed(2)) : 0;
+    const avgKwhPerPct = totalSoc > 0 ? Number((totalEnergy / totalSoc).toFixed(2)) : 0;
     const totalDur = filteredTrips.reduce((acc, t) => acc + (t.durationMinutes || 0), 0);
     const avgSpeed = totalDur > 0 ? Number((totalDist / (totalDur / 60)).toFixed(1)) : 0;
     
@@ -58,7 +60,9 @@ export function AnalyticsTab() {
       totalRangeDiff: finalRangeDiff,
       totalEstRangeUsed: Number(totalEstRangeUsed.toFixed(1)),
       avgSpeed,
-      avgKmPerPct
+      avgKmPerPct,
+      avgKmPerKwh,
+      avgKwhPerPct
     };
   }, [filteredTrips]);
 
@@ -70,6 +74,8 @@ export function AnalyticsTab() {
       const energy = catTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
       const totalSoc = catTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
       const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
+      const avgKmPerKwh = energy > 0 ? Number((dist / energy).toFixed(2)) : 0;
+      const avgKwhPerPct = totalSoc > 0 ? Number((energy / totalSoc).toFixed(2)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       let totalEstRangeUsed = 0;
@@ -94,7 +100,9 @@ export function AnalyticsTab() {
         count: catTrips.length,
         rangeBiasPct: avgAccuracy,
         totalRangeDiff: totalEstRangeUsed > 0 ? Number(totalRangeDiff.toFixed(1)) : null,
-        avgKmPerPct
+        avgKmPerPct,
+        avgKmPerKwh,
+        avgKwhPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -107,6 +115,8 @@ export function AnalyticsTab() {
       const energy = seasonTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
       const totalSoc = seasonTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
       const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
+      const avgKmPerKwh = energy > 0 ? Number((dist / energy).toFixed(2)) : 0;
+      const avgKwhPerPct = totalSoc > 0 ? Number((energy / totalSoc).toFixed(2)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       let totalEstRangeUsed = 0;
@@ -131,7 +141,9 @@ export function AnalyticsTab() {
         count: seasonTrips.length,
         rangeBiasPct: avgAccuracy,
         totalRangeDiff: totalEstRangeUsed > 0 ? Number(totalRangeDiff.toFixed(1)) : null,
-        avgKmPerPct
+        avgKmPerPct,
+        avgKmPerKwh,
+        avgKwhPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -149,6 +161,8 @@ export function AnalyticsTab() {
       const energy = catTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
       const totalSoc = catTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
       const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
+      const avgKmPerKwh = energy > 0 ? Number((dist / energy).toFixed(2)) : 0;
+      const avgKwhPerPct = totalSoc > 0 ? Number((energy / totalSoc).toFixed(2)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       const totalDur = catTrips.reduce((acc, t) => acc + (t.durationMinutes || 0), 0);
@@ -160,7 +174,9 @@ export function AnalyticsTab() {
         efficiency: eff,
         avgSpeed,
         count: catTrips.length,
-        avgKmPerPct
+        avgKmPerPct,
+        avgKmPerKwh,
+        avgKwhPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -178,6 +194,8 @@ export function AnalyticsTab() {
       const energy = catTrips.reduce((acc, t) => acc + t.estKWhUsed, 0);
       const totalSoc = catTrips.reduce((acc, t) => acc + (t.socUsedPct || 0), 0);
       const avgKmPerPct = totalSoc > 0 ? Number((dist / totalSoc).toFixed(1)) : 0;
+      const avgKmPerKwh = energy > 0 ? Number((dist / energy).toFixed(2)) : 0;
+      const avgKwhPerPct = totalSoc > 0 ? Number((energy / totalSoc).toFixed(2)) : 0;
       const eff = dist > 0 ? Number(((energy / dist) * 100).toFixed(1)) : 0;
       
       return {
@@ -185,7 +203,9 @@ export function AnalyticsTab() {
         distance: Number(dist.toFixed(0)),
         efficiency: eff,
         count: catTrips.length,
-        avgKmPerPct
+        avgKmPerPct,
+        avgKmPerKwh,
+        avgKwhPerPct
       };
     }).filter(c => c.count > 0);
   }, [filteredTrips]);
@@ -220,7 +240,7 @@ export function AnalyticsTab() {
         return;
       }
       
-      const headers = ['Trip ID', 'Date', 'Start Time', 'End Time', 'Duration (mins)', 'Avg Speed (km/h)', 'Category', 'Trip Type', 'Road Trip Name', 'Start Odometer', 'End Odometer', 'Distance (km)', 'Start SOC', 'End SOC', 'SOC Used (%)', 'Start Est Range', 'End Est Range', 'Est Range Used', 'Range Diff (km)', 'Range Accuracy (%)', 'Energy Used (Est.) (kWh)', 'Efficiency (kWh/100km)', 'Season', 'Weather Condition', 'Start Temp (C)', 'End Temp (C)', 'Avg Temp (C)', 'People', 'Dogs', 'Luggage', 'Payload (kg)', 'Notes', 'Charging Added (kWh)', 'Charging New SOC (%)', 'Charging Cost ($)'];
+      const headers = ['Trip ID', 'Date', 'Start Time', 'End Time', 'Duration (mins)', 'Avg Speed (km/h)', 'Category', 'Trip Type', 'Road Trip Name', 'Start Odometer', 'End Odometer', 'Distance (km)', 'Start SOC', 'End SOC', 'SOC Used (%)', 'Start Est Range', 'End Est Range', 'Est Range Used', 'Range Diff (km)', 'Range Accuracy (%)', 'Energy Used (Est.) (kWh)', 'Efficiency (kWh/100km)', 'km / kWh', 'kWh / % SOC', 'km / % SOC', 'Season', 'Weather Condition', 'Start Temp (C)', 'End Temp (C)', 'Avg Temp (C)', 'People', 'Dogs', 'Luggage', 'Payload (kg)', 'Notes', 'Charging Added (kWh)', 'Charging New SOC (%)', 'Charging Cost ($)'];
       const rows = trips.map(t => [
         t.id,
         format(t.startTime, 'yyyy-MM-dd'),
@@ -244,6 +264,9 @@ export function AnalyticsTab() {
         t.rangeAccuracyPct !== undefined ? t.rangeAccuracyPct : '',
         t.estKWhUsed,
         t.efficiencyKWhPer100Km,
+        t.estKWhUsed > 0 ? Number((t.distanceKm / t.estKWhUsed).toFixed(2)) : '',
+        t.socUsedPct > 0 ? Number((t.estKWhUsed / t.socUsedPct).toFixed(2)) : '',
+        t.socUsedPct > 0 ? Number((t.distanceKm / t.socUsedPct).toFixed(1)) : '',
         t.weather?.season || '',
         t.weather?.overallCondition ? `"${t.weather.overallCondition}"` : '',
         t.weather?.start?.temp !== undefined ? t.weather.start.temp : '',
@@ -307,7 +330,10 @@ export function AnalyticsTab() {
             <Navigation className="h-4 w-4 text-[#00D1FF] shrink-0" /> Distance Travelled
           </div>
           <div className="stat-value text-3xl mb-2 truncate">{stats.totalDist.toLocaleString()} <span className="text-xs font-normal opacity-60">km</span></div>
-          <div className="text-sm font-bold text-[#00D1FF] mb-3">{stats.avgKmPerPct} <span className="text-[10px] font-normal opacity-60 text-white">km / % SOC</span></div>
+          <div className="flex justify-between mb-3">
+            <div className="text-sm font-bold text-[#00D1FF]">{stats.avgKmPerPct} <span className="text-[10px] font-normal opacity-60 text-white">km / % SOC</span></div>
+            <div className="text-sm font-bold text-[#00D1FF] text-right">{stats.avgKmPerKwh} <span className="text-[10px] font-normal opacity-60 text-white">km / kWh</span></div>
+          </div>
           <div className="text-[10px] text-slate-400 font-normal mt-auto leading-tight">Actual odometre kilometres driven across selected trips.</div>
         </div>
         <div className="glass-card p-5 h-full flex flex-col min-w-0">
@@ -325,6 +351,7 @@ export function AnalyticsTab() {
             <BatteryCharging className="h-4 w-4 text-[#00D1FF] shrink-0" /> Energy Used (Est.)
           </div>
           <div className="stat-value text-3xl mb-2 truncate">{stats.totalEnergy.toLocaleString()} <span className="text-xs font-normal opacity-60">kWh</span></div>
+          <div className="text-sm font-bold text-[#00D1FF] mb-3">{stats.avgKwhPerPct} <span className="text-[10px] font-normal opacity-60 text-white">kWh / % SOC</span></div>
           <div className="text-[10px] text-slate-400 font-normal mt-auto leading-tight">Estimated energy consumed. Calculated using the SOC % drop against the total 82.5 kWh battery capacity.</div>
         </div>
         {stats.avgAccuracy !== null && (
@@ -406,6 +433,14 @@ export function AnalyticsTab() {
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
                     <span className="text-sm font-bold text-white">{season.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
                   </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / kWh</span>
+                    <span className="text-sm font-bold text-white">{season.avgKmPerKwh} <span className="text-[10px] opacity-60">km/kWh</span></span>
+                  </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">kWh / % SOC</span>
+                    <span className="text-sm font-bold text-white">{season.avgKwhPerPct} <span className="text-[10px] opacity-60">kWh/%</span></span>
+                  </div>
                   
                   <div className="flex justify-between items-end pt-1">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Range Bias</span>
@@ -465,6 +500,14 @@ export function AnalyticsTab() {
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
                     <span className="text-sm font-bold text-white">{cat.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
                   </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / kWh</span>
+                    <span className="text-sm font-bold text-white">{cat.avgKmPerKwh} <span className="text-[10px] opacity-60">km/kWh</span></span>
+                  </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">kWh / % SOC</span>
+                    <span className="text-sm font-bold text-white">{cat.avgKwhPerPct} <span className="text-[10px] opacity-60">kWh/%</span></span>
+                  </div>
                   
                   <div className="flex justify-between items-end pt-1">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Range Bias</span>
@@ -520,9 +563,17 @@ export function AnalyticsTab() {
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{speed.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
-                  <div className="flex justify-between items-end pt-2">
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
                     <span className="text-sm font-bold text-white">{speed.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
+                  </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / kWh</span>
+                    <span className="text-sm font-bold text-white">{speed.avgKmPerKwh} <span className="text-[10px] opacity-60">km/kWh</span></span>
+                  </div>
+                  <div className="flex justify-between items-end pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">kWh / % SOC</span>
+                    <span className="text-sm font-bold text-white">{speed.avgKwhPerPct} <span className="text-[10px] opacity-60">kWh/%</span></span>
                   </div>
                 </div>
               </div>
@@ -563,9 +614,17 @@ export function AnalyticsTab() {
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">Efficiency</span>
                     <span className="text-sm font-bold text-[#00D1FF]">{payload.efficiency} <span className="text-[10px] opacity-60 text-white">kWh/100km</span></span>
                   </div>
-                  <div className="flex justify-between items-end pt-2">
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
                     <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / % SOC</span>
                     <span className="text-sm font-bold text-white">{payload.avgKmPerPct} <span className="text-[10px] opacity-60">km/%</span></span>
+                  </div>
+                  <div className="flex justify-between items-end border-b border-white/5 pb-2 pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">km / kWh</span>
+                    <span className="text-sm font-bold text-white">{payload.avgKmPerKwh} <span className="text-[10px] opacity-60">km/kWh</span></span>
+                  </div>
+                  <div className="flex justify-between items-end pt-2">
+                    <span className="text-[10px] uppercase font-bold text-white tracking-widest">kWh / % SOC</span>
+                    <span className="text-sm font-bold text-white">{payload.avgKwhPerPct} <span className="text-[10px] opacity-60">kWh/%</span></span>
                   </div>
                 </div>
               </div>

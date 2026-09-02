@@ -319,6 +319,8 @@ const RoadTripCard: React.FC<{ cluster: { isCluster?: boolean, name: string, tri
             {totalDuration > 0 && ` • ${Math.floor(totalDuration / 60)}h ${totalDuration % 60}m`}
             {avgSpeed && ` • ${avgSpeed} km/h`}
             {totalSoc > 0 && ` • ${(totalDistance / totalSoc).toFixed(1)} km/%`}
+            {totalEnergy > 0 && ` • ${(totalDistance / totalEnergy).toFixed(2)} km/kWh`}
+            {totalSoc > 0 && totalEnergy > 0 && ` • ${(totalEnergy / totalSoc).toFixed(2)} kWh/%`}
           </div>
         </div>
         <div className="text-right flex flex-col items-end gap-1">
@@ -596,6 +598,8 @@ function TripCard({ trip, isEditing, onEdit, onCancelEdit, categoryAvg, selectio
             {trip.durationMinutes && ` • ${Math.floor(trip.durationMinutes / 60)}h ${trip.durationMinutes % 60}m`}
             {trip.averageSpeedKph && ` • ${trip.averageSpeedKph} km/h`}
             {trip.socUsedPct > 0 && ` • ${(trip.distanceKm / trip.socUsedPct).toFixed(1)} km/%`}
+            {trip.estKWhUsed > 0 && ` • ${(trip.distanceKm / trip.estKWhUsed).toFixed(2)} km/kWh`}
+            {trip.socUsedPct > 0 && trip.estKWhUsed > 0 && ` • ${(trip.estKWhUsed / trip.socUsedPct).toFixed(2)} kWh/%`}
           </div>
         </div>
         <div className="text-right flex flex-col items-end gap-1">
